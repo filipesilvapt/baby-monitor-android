@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import com.babyMonitor.R
 import com.babyMonitor.Utils
 import com.babyMonitor.database.RTDatabasePaths
-import com.babyMonitor.models.ThermometerValue
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -84,27 +83,18 @@ class BabyBoardViewModel : ViewModel() {
 
     fun observeFirebaseBabyTemperature() {
         val database = Firebase.database
-        babyTemperatureRef = database.getReference(RTDatabasePaths.PATH_THERMOMETER_READINGS)
+        babyTemperatureRef = database.getReference(RTDatabasePaths.PATH_LAST_THERMOMETER_READING)
 
-        val rowsToQuery = 1
 
         // Read from the database
-        babyTemperatureListener = babyTemperatureRef.limitToLast(rowsToQuery)
-            .addValueEventListener(object : ValueEventListener {
+        babyTemperatureListener =
+            babyTemperatureRef.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    var currentTemp: Double = 0.0
+                    val currentTemp = dataSnapshot.getValue(Double::class.java) ?: 0.0
 
-                    Log.d(TAG, "-------------------------------------------")
-                    for (postSnapshot in dataSnapshot.children) {
-                        val value = postSnapshot.getValue(ThermometerValue::class.java)
-                        Log.d(TAG, "Thermometer read is: $value")
-
-                        value?.let {
-                            currentTemp = it.temp
-                        }
-                    }
+                    Log.d(TAG, "Current temperature read is: $currentTemp")
 
                     // Set the temperature text
                     _textBabyTemperature.value = "${Utils.getDoubleOneDecimal(currentTemp)} ºC"
@@ -138,10 +128,10 @@ class BabyBoardViewModel : ViewModel() {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    val value = dataSnapshot.getValue(Int::class.java)
-                    Log.d(TAG, "Sleep state is: $value")
+                    val currentSleepState = dataSnapshot.getValue(Int::class.java)
+                    Log.d(TAG, "Current sleep state is: $currentSleepState")
 
-                    when (value) {
+                    when (currentSleepState) {
                         // Baby is agitated
                         1 -> {
                             _textBabySleepStateResId.value = R.string.emotion_state_agitated

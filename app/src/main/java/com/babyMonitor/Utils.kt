@@ -20,8 +20,8 @@ object Utils {
     const val FORMAT_DATE_AND_TIME = "yyyyMMddHHmmss"
 
     fun getDoubleOneDecimal(value: Double): String {
-        val df = DecimalFormat("#.#")
-        df.roundingMode = RoundingMode.CEILING
+        val df = DecimalFormat("0.0")
+        df.roundingMode = RoundingMode.HALF_EVEN
         return df.format(value)
     }
 
