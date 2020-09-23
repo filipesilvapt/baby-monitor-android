@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#00BCD4</color>
+    <color name="colorPrimaryDark">#00BCD4</color>
+    <color name="colorAccent">#d6fbe4</color>
+
+    <color name="colorChartMaxValue">#FF7474</color>
+    <color name="colorChartMinValue">#97C6FF</color>
+    <color name="colorChartLine">#97CAD1</color>
+    <color name="colorChartAxisValues">#3E3E3E</color>
+</resources>

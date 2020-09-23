@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">Baby Monitor</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Baby Monitor</string>
+    <string name="nav_header_subtitle">The calm you needed</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="menu_baby_board">Baby Board</string>
+    <string name="menu_temp_monitor">Temperature</string>
+    <string name="menu_sleep_monitor">Sleep Monitor</string>
+
+    <string name="content_desc_baby_picture">Baby picture</string>
+    <string name="content_desc_baby_temperature">Baby temperature</string>
+    <string name="content_desc_baby_sleep_state">Baby sleep state</string>
+
+    <string name="emotion_state_sleep">Sleeping</string>
+    <string name="emotion_state_agitated">Agitated</string>
+    <string name="emotion_state_disturbed">Disturbed</string>
+
+    <string name="chart_limit_temperature_max">Fever</string>
+    <string name="chart_limit_temperature_min">Cold</string>
+
+    <string name="chart_label_time">Time</string>
+
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string name="default_notification_channel_name">Baby Monitor Notifications</string>
+    <string name="default_notification_channel_description">Baby Monitor notifications for temperature and sleep state</string>
+
+    <string name="notification_title_high_temperature">High Temperature</string>
+    <string name="notification_title_low_temperature">Low Temperature</string>
+
+    <string name="notification_message_high_temperature">(Fever) Your baby\'s temperature is %1$.1f ºC</string>
+    <string name="notification_message_low_temperature">(Cold) Your baby\'s temperature is %1$.1f ºC</string>
+</resources>

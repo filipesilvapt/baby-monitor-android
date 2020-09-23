@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph_main"
+    app:startDestination="@+id/nav_baby_board">
+
+    <fragment
+        android:id="@+id/nav_baby_board"
+        android:name="com.babyMonitor.ui.babyBoard.BabyBoardFragment"
+        android:label="@string/menu_baby_board"
+        tools:layout="@layout/fragment_baby_board" />
+
+    <fragment
+        android:id="@+id/nav_temperature_monitor"
+        android:name="com.babyMonitor.ui.temperatureMonitor.TemperatureMonitorFragment"
+        android:label="@string/menu_temp_monitor"
+        tools:layout="@layout/fragment_temperature_monitor" />
+
+    <fragment
+        android:id="@+id/nav_sleep_monitor"
+        android:name="com.babyMonitor.ui.sleepMonitor.SleepMonitorFragment"
+        android:label="@string/menu_sleep_monitor"
+        tools:layout="@layout/fragment_sleep_monitor" />
+</navigation>
