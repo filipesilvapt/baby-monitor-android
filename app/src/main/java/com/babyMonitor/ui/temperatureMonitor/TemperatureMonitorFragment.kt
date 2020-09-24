@@ -8,13 +8,13 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import com.babyMonitor.R
-import com.babyMonitor.utils.Utils
 import com.babyMonitor.charts.ChartYAxisLeftRenderer
 import com.babyMonitor.charts.DateTimeValueFormatter
 import com.babyMonitor.charts.TemperatureValueFormatter
 import com.babyMonitor.models.ThermometerValue
+import com.babyMonitor.utils.Utils
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.LimitLine
@@ -23,7 +23,6 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
-
 
 class TemperatureMonitorFragment : Fragment() {
 
@@ -39,7 +38,7 @@ class TemperatureMonitorFragment : Fragment() {
         Log.i(TAG, "onCreateView - Starting observers")
 
         temperatureMonitorViewModel =
-            ViewModelProviders.of(this).get(TemperatureMonitorViewModel::class.java)
+            ViewModelProvider(this).get(TemperatureMonitorViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_temperature_monitor, container, false)
 
         temperatureChart = root.findViewById(R.id.chart_temperature)

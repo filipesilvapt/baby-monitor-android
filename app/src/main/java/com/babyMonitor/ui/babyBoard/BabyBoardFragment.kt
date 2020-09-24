@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import com.babyMonitor.databinding.FragmentBabyBoardBinding
 import com.babyMonitor.utils.EventObserver
@@ -28,7 +28,7 @@ class BabyBoardFragment : Fragment() {
     ): View? {
         Log.i(TAG, "onCreateView")
 
-        viewModel = ViewModelProviders.of(this).get(BabyBoardViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(BabyBoardViewModel::class.java)
         val binding = FragmentBabyBoardBinding.inflate(layoutInflater, container, false)
 
         binding.viewModel = viewModel
