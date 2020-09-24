@@ -122,7 +122,10 @@ class TemperatureMonitorFragment : Fragment() {
             // Draw limit lines behind the main graph line or not
             //setDrawLimitLinesBehindData(true)
 
-            val ll1 = LimitLine(37.5f, getString(R.string.chart_limit_temperature_max))
+            val ll1 = LimitLine(
+                HIGH_TEMPERATURE_VALUE_THRESHOLD,
+                getString(R.string.chart_limit_temperature_max)
+            )
             ll1.lineColor = ContextCompat.getColor(requireContext(), R.color.colorChartMaxValue)
             ll1.lineWidth = 4f
             //ll1.enableDashedLine(5f, 10f, 0f)
@@ -130,7 +133,10 @@ class TemperatureMonitorFragment : Fragment() {
             ll1.textSize = 17f
             ll1.textColor = ContextCompat.getColor(requireContext(), R.color.colorChartMaxValue)
 
-            val ll2 = LimitLine(36f, getString(R.string.chart_limit_temperature_min))
+            val ll2 = LimitLine(
+                LOW_TEMPERATURE_VALUE_THRESHOLD,
+                getString(R.string.chart_limit_temperature_min)
+            )
             ll2.lineColor = ContextCompat.getColor(requireContext(), R.color.colorChartMinValue)
             ll2.lineWidth = 4f
             //ll2.enableDashedLine(5f, 10f, 0f)
@@ -174,15 +180,15 @@ class TemperatureMonitorFragment : Fragment() {
                 )
             )
 
-            if (thermometerValue.temp.toFloat() > MAX_TEMPERATURE_VALUE) {
+            if (thermometerValue.temp.toFloat() > MAX_GRAPH_BOUNDARY_TEMPERATURE_VALUE) {
                 isMaxTemperatureValueSurpassed = true
-            } else if (thermometerValue.temp.toFloat() < MIN_TEMPERATURE_VALUE) {
+            } else if (thermometerValue.temp.toFloat() < MIN_GRAPH_BOUNDARY_TEMPERATURE_VALUE) {
                 isMinTemperatureValueSurpassed = true
             }
         }
 
-        temperatureChart.axisLeft.axisMaximum = MAX_TEMPERATURE_VALUE
-        temperatureChart.axisLeft.axisMinimum = MIN_TEMPERATURE_VALUE
+        temperatureChart.axisLeft.axisMaximum = MAX_GRAPH_BOUNDARY_TEMPERATURE_VALUE
+        temperatureChart.axisLeft.axisMinimum = MIN_GRAPH_BOUNDARY_TEMPERATURE_VALUE
 
         if (isMaxTemperatureValueSurpassed) temperatureChart.axisLeft.resetAxisMaximum()
         if (isMinTemperatureValueSurpassed) temperatureChart.axisLeft.resetAxisMinimum()
@@ -242,8 +248,12 @@ class TemperatureMonitorFragment : Fragment() {
 
     companion object {
         private val TAG: String = TemperatureMonitorFragment::class.java.simpleName
-        private const val MAX_TEMPERATURE_VALUE = 38.0f
-        private const val MIN_TEMPERATURE_VALUE = 35.5f
+
+        private const val MAX_GRAPH_BOUNDARY_TEMPERATURE_VALUE = 38.0f
+        private const val MIN_GRAPH_BOUNDARY_TEMPERATURE_VALUE = 35.5f
+
+        private const val HIGH_TEMPERATURE_VALUE_THRESHOLD = 37.5f
+        private const val LOW_TEMPERATURE_VALUE_THRESHOLD = 36f
     }
 
 }
