@@ -28,7 +28,7 @@ class SleepMonitorViewModel : ViewModel() {
         val database = Firebase.database
         accelerometerRef = database.getReference(RTDatabasePaths.PATH_ACCELEROMETER_READINGS)
 
-        val rowsToQuery = 1 00
+        val rowsToQuery = 100
 
         // Read from the database
         thermometerListener = accelerometerRef.limitToLast(rowsToQuery)
