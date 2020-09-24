@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.babyMonitor.R
-import com.babyMonitor.Utils
+import com.babyMonitor.utils.Utils
 import com.babyMonitor.charts.ChartYAxisLeftRenderer
 import com.babyMonitor.charts.DateTimeValueFormatter
 import com.babyMonitor.charts.TemperatureValueFormatter
@@ -36,7 +36,7 @@ class TemperatureMonitorFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        Log.d(TAG, "onCreateView - Starting observers")
+        Log.i(TAG, "onCreateView - Starting observers")
 
         temperatureMonitorViewModel =
             ViewModelProviders.of(this).get(TemperatureMonitorViewModel::class.java)
@@ -57,7 +57,7 @@ class TemperatureMonitorFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        Log.d(TAG, "onDestroyView - Stopping observers")
+        Log.i(TAG, "onDestroyView - Stopping observers")
         temperatureMonitorViewModel.temperatureHistory.removeObservers(viewLifecycleOwner)
         temperatureMonitorViewModel.stopObservingFirebaseBabyTemperatureHistory()
     }

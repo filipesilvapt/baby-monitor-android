@@ -16,8 +16,8 @@ import androidx.core.app.NotificationCompat
 import com.babyMonitor.BuildConfig
 import com.babyMonitor.MainActivity
 import com.babyMonitor.R
-import com.babyMonitor.Utils
 import com.babyMonitor.database.RTDatabasePaths
+import com.babyMonitor.utils.Utils
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -28,18 +28,18 @@ class FirebaseNotificationService : FirebaseMessagingService() {
 
     override fun onNewToken(newToken: String) {
         super.onNewToken(newToken)
-        Log.d(TAG, "New token: $newToken")
+        Log.i(TAG, "New token: $newToken")
 
         sendRegistrationToServer(newToken)
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
-        Log.d(TAG, "Message received from: ${remoteMessage.from}")
+        Log.i(TAG, "Message received from: ${remoteMessage.from}")
 
         // Check if message contains a data payload.
         if (remoteMessage.data.isNotEmpty()) {
-            Log.d(TAG, "Message data payload: ${remoteMessage.data}")
+            Log.i(TAG, "Message data payload: ${remoteMessage.data}")
             val temperatureReading: Float = remoteMessage.data["temperature"]?.toFloat() ?: -1f
 
             when (val typeOfTempWarning: Int =
@@ -73,15 +73,6 @@ class FirebaseNotificationService : FirebaseMessagingService() {
             }
 
         }
-
-        // Check if message contains a notification payload.
-        /*remoteMessage.notification?.let {
-            Log.d(TAG, "Message Notification Body: ${it.body}")
-
-            it.body?.run {
-                sendNotification(this)
-            }
-        }*/
     }
 
     /**
@@ -154,7 +145,7 @@ class FirebaseNotificationService : FirebaseMessagingService() {
         map[uniqueId] = newToken
         clientTokensRef.updateChildren(map)
             .addOnSuccessListener {
-                Log.d(TAG, "Firebase token was successfully saved in RT Database with id $uniqueId")
+                Log.i(TAG, "Firebase token was successfully saved in RT Database with id $uniqueId")
             }
             .addOnFailureListener {
                 Log.w(TAG, "Firebase token failed to be saved in RT Database")

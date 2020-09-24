@@ -9,7 +9,22 @@
         android:id="@+id/nav_baby_board"
         android:name="com.babyMonitor.ui.babyBoard.BabyBoardFragment"
         android:label="@string/menu_baby_board"
-        tools:layout="@layout/fragment_baby_board" />
+        tools:layout="@layout/fragment_baby_board">
+        <action
+            android:id="@+id/action_open_temperature_monitor"
+            app:destination="@+id/nav_temperature_monitor"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_open_sleep_monitor"
+            app:destination="@+id/nav_sleep_monitor"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_temperature_monitor"

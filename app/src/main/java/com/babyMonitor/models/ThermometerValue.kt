@@ -1,6 +1,6 @@
 package com.babyMonitor.models
 
-import com.babyMonitor.Utils
+import com.babyMonitor.utils.Utils
 
 class ThermometerValue {
 

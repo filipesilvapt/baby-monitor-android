@@ -1,12 +1,14 @@
 package com.babyMonitor.ui.babyBoard
 
 import android.util.Log
+import android.view.View
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.babyMonitor.R
-import com.babyMonitor.Utils
 import com.babyMonitor.database.RTDatabasePaths
+import com.babyMonitor.utils.FireOnceEvent
+import com.babyMonitor.utils.Utils
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -53,6 +55,23 @@ class BabyBoardViewModel : ViewModel() {
 
     private lateinit var babySleepStateListener: ValueEventListener
 
+    private val _navigateToTemperatureMonitor = MutableLiveData<FireOnceEvent<Boolean>>()
+    val navigateToTemperatureMonitor: LiveData<FireOnceEvent<Boolean>> =
+        _navigateToTemperatureMonitor
+
+    private val _navigateToSleepStateMonitor = MutableLiveData<FireOnceEvent<Boolean>>()
+    val navigateToSleepStateMonitor: LiveData<FireOnceEvent<Boolean>> = _navigateToSleepStateMonitor
+
+    fun onButtonPressedTemperature(@Suppress("UNUSED_PARAMETER") view: View) {
+        Log.i(TAG, "Button pressed - temperature")
+        _navigateToTemperatureMonitor.value = FireOnceEvent(true)
+    }
+
+    fun onButtonPressedSleepState(@Suppress("UNUSED_PARAMETER") view: View) {
+        Log.i(TAG, "Button pressed - sleep state")
+        _navigateToSleepStateMonitor.value = FireOnceEvent(true)
+    }
+
     fun observeFirebaseBabyName() {
         val database = Firebase.database
         babyNameRef = database.getReference(RTDatabasePaths.PATH_BABY_NAME)
@@ -63,7 +82,7 @@ class BabyBoardViewModel : ViewModel() {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
                 val value = dataSnapshot.getValue(String::class.java)
-                Log.d(TAG, "Baby name is: $value")
+                Log.i(TAG, "Baby name is: $value")
 
                 value?.let {
                     _textBabyName.value = it

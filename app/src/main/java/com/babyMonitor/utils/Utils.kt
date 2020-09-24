@@ -1,4 +1,4 @@
-package com.babyMonitor
+package com.babyMonitor.utils
 
 import android.annotation.SuppressLint
 import android.content.ContentResolver
