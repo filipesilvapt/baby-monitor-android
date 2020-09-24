@@ -86,6 +86,7 @@ class TemperatureMonitorFragment : Fragment() {
             // Set a bottom offset as the values get cut off without the LineDataSet label
             setExtraOffsets(0f, 0f, 20f, 2f)
 
+            // Animate the graph lines when entering
             animateX(1000, Easing.Linear)
 
             // todo try and rotate the temperature using a custom render
@@ -229,8 +230,6 @@ class TemperatureMonitorFragment : Fragment() {
         temperatureChart.xAxis.valueFormatter =
             DateTimeValueFormatter(firstTemperatureReadingMillis)
 
-        //temperatureChart.notifyDataSetChanged() // todo is required?
-
         val dataSets: ArrayList<ILineDataSet> = ArrayList()
         dataSets.add(set1)
         val data = LineData(dataSets)
@@ -240,110 +239,6 @@ class TemperatureMonitorFragment : Fragment() {
         temperatureChart.invalidate()
         //}
     }
-
-    /*fun renderData(dates: List<String?>?, allAmounts: List<Double?>?) {
-        val xAxisLabel: ArrayList<String> = ArrayList()
-        xAxisLabel.add("1")
-        xAxisLabel.add("7")
-        xAxisLabel.add("14")
-        xAxisLabel.add("21")
-        xAxisLabel.add("28")
-        xAxisLabel.add("30")
-        val xAxis: XAxis = volumeReportChart.getXAxis()
-        val position = XAxisPosition.BOTTOM
-        xAxis.position = position
-        xAxis.enableGridDashedLine(2f, 7f, 0f)
-        xAxis.axisMaximum = 5f
-        xAxis.axisMinimum = 0f
-        xAxis.setLabelCount(6, true)
-        xAxis.isGranularityEnabled = true
-        xAxis.granularity = 7f
-        xAxis.labelRotationAngle = 315f
-        xAxis.valueFormatter = ClaimsXAxisValueFormatter(dates)
-        xAxis.setCenterAxisLabels(true)
-        xAxis.setDrawLimitLinesBehindData(true)
-        val ll1 = LimitLine(UISetters.getDateInNumber().toFloat(), UISetters.getDateInNumber())
-        ll1.lineColor = resources.getColor(R.color.greyish_brown)
-        ll1.lineWidth = 4f
-        ll1.enableDashedLine(10f, 10f, 0f)
-        ll1.labelPosition = LimitLine.LimitLabelPosition.RIGHT_BOTTOM
-        ll1.textSize = 10f
-        val ll2 = LimitLine(35f, "")
-        ll2.lineWidth = 4f
-        ll2.enableDashedLine(10f, 10f, 0f)
-        ll2.labelPosition = LimitLine.LimitLabelPosition.RIGHT_BOTTOM
-        ll2.textSize = 10f
-        ll2.lineColor = Color.parseColor("#FFFFFF")
-        xAxis.removeAllLimitLines()
-        xAxis.addLimitLine(ll1)
-        xAxis.addLimitLine(ll2)
-        val leftAxis: YAxis = volumeReportChart.getAxisLeft()
-        leftAxis.removeAllLimitLines()
-        //leftAxis.addLimitLine(ll1);
-        //leftAxis.addLimitLine(ll2);
-        leftAxis.axisMaximum = findMaximumValueInList(allAmounts).floatValue() + 100f
-        leftAxis.axisMinimum = 0f
-        leftAxis.enableGridDashedLine(10f, 10f, 0f)
-        leftAxis.setDrawZeroLine(false)
-        leftAxis.setDrawLimitLinesBehindData(false)
-        //XAxis xAxis = mBarChart.getXAxis();
-        leftAxis.valueFormatter = ClaimsYAxisValueFormatter()
-        volumeReportChart.getDescription().setEnabled(true)
-        val description = Description()
-        // description.setText(UISetters.getFullMonthName());//commented for weekly reporting
-        description.text = "Week"
-        description.textSize = 15f
-        volumeReportChart.getDescription().setPosition(0f, 0f)
-        volumeReportChart.setDescription(description)
-        volumeReportChart.getAxisRight().setEnabled(false)
-
-        //setData()-- allAmounts is data to display;
-        setDataForWeeksWise(allAmounts)
-    }
-
-    private fun setDataForWeeksWise(amounts: List<Double>) {
-        val values: ArrayList<Map.Entry<*, *>> = ArrayList()
-        values.add(MutableMap.MutableEntry<Any?, Any?>(1, amounts[0].toFloat()))
-        values.add(MutableMap.MutableEntry<Any?, Any?>(2, amounts[1].toFloat()))
-        values.add(MutableMap.MutableEntry<Any?, Any?>(3, amounts[2].toFloat()))
-        values.add(MutableMap.MutableEntry<Any?, Any?>(4, amounts[3].toFloat()))
-        val set1: LineDataSet
-        if (volumeReportChart.data != null &&
-            volumeReportChart.data.dataSetCount > 0
-        ) {
-            set1 = volumeReportChart.data.getDataSetByIndex(0) as LineDataSet
-            set1.setValues(values)
-            volumeReportChart.data.notifyDataChanged()
-            volumeReportChart.notifyDataSetChanged()
-        } else {
-            set1 = LineDataSet(values, "Total volume")
-            set1.setDrawCircles(true)
-            set1.enableDashedLine(10f, 0f, 0f)
-            set1.enableDashedHighlightLine(10f, 0f, 0f)
-            set1.color = resources.getColor(R.color.colorPrimary)
-            set1.setCircleColor(resources.getColor(R.color.colorPrimary))
-            set1.lineWidth = 2f //line size
-            set1.circleRadius = 5f
-            set1.setDrawCircleHole(true)
-            set1.valueTextSize = 10f
-            set1.setDrawFilled(true)
-            set1.formLineWidth = 5f
-            set1.formLineDashEffect = DashPathEffect(floatArrayOf(10f, 5f), 0f)
-            set1.formSize = 5f
-            //if (Utils.getSDKInt() >= 18) {
-//                Drawable drawable = ContextCompat.getDrawable(this, R.drawable.blue_bg);
-//                set1.setFillDrawable(drawable);
-                set1.fillColor = Color.WHITE
-            }// else {
-                set1.fillColor = Color.WHITE
-            //}
-            set1.setDrawValues(true)
-            val dataSets: ArrayList<ILineDataSet> = ArrayList()
-            dataSets.add(set1)
-            val data = LineData(dataSets)
-            volumeReportChart.data = data
-        }
-    }*/
 
     companion object {
         private val TAG: String = TemperatureMonitorFragment::class.java.simpleName

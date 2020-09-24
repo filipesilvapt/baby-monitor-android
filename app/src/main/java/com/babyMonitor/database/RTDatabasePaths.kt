@@ -13,4 +13,6 @@ object RTDatabasePaths {
     const val PATH_LAST_SLEEP_STATE: String = "$DATABASE_NODE_ID/LastSleepState"
 
     const val PATH_THERMOMETER_READINGS: String = "$DATABASE_NODE_ID/ThermometerReadings"
+
+    const val PATH_ACCELEROMETER_READINGS: String = "$DATABASE_NODE_ID/AccelerometerReadings"
 }
