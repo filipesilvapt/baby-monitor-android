@@ -138,7 +138,7 @@ class SleepMonitorFragment : Fragment() {
                     // date and time in milliseconds minus the reference value
                     entryTimestamp,
                     // accelerometer reading
-                    accelerometerValue.x_axis.toFloat()
+                    accelerometerValue.xAxis.toFloat()
                 )
             )
 
@@ -147,7 +147,7 @@ class SleepMonitorFragment : Fragment() {
                     // date and time in milliseconds minus the reference value
                     entryTimestamp,
                     // accelerometer reading
-                    accelerometerValue.y_axis.toFloat()
+                    accelerometerValue.yAxis.toFloat()
                 )
             )
 
@@ -156,7 +156,7 @@ class SleepMonitorFragment : Fragment() {
                     // date and time in milliseconds minus the reference value
                     entryTimestamp,
                     // accelerometer reading
-                    accelerometerValue.z_axis.toFloat()
+                    accelerometerValue.zAxis.toFloat()
                 )
             )
         }

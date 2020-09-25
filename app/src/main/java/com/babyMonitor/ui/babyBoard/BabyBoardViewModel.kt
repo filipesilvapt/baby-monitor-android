@@ -120,8 +120,8 @@ class BabyBoardViewModel : ViewModel() {
 
                     // Set the temperature image
                     _imageBabyTemperatureResId.value = when {
-                        currentTemp > 38.0 -> R.drawable.ic_temperature_high
-                        currentTemp < 36.0 -> R.drawable.ic_temperature_low
+                        currentTemp >= 37.5 -> R.drawable.ic_temperature_high
+                        currentTemp <= 36.0 -> R.drawable.ic_temperature_low
                         else -> R.drawable.ic_temperature_normal
                     }
                 }
