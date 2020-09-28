@@ -9,6 +9,7 @@ import com.babyMonitor.MainApplication
 import com.babyMonitor.R
 import com.babyMonitor.database.RTDatabasePaths
 import com.babyMonitor.models.TemperatureThresholds
+import com.babyMonitor.models.ThermometerValue
 import com.babyMonitor.utils.FireOnceEvent
 import com.babyMonitor.utils.Utils
 import com.google.firebase.database.DataSnapshot
@@ -43,7 +44,7 @@ class BabyBoardViewModel : ViewModel() {
 
     private lateinit var babyTemperatureListener: ValueEventListener
 
-    private var currentTemp: Double = 0.0
+    private var currentThermometerReading: ThermometerValue? = null
 
     private val _textBabySleepStateResId = MutableLiveData<Int>().apply {
         value = null
@@ -114,18 +115,18 @@ class BabyBoardViewModel : ViewModel() {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    currentTemp = dataSnapshot.getValue(Double::class.java) ?: 0.0
+                    currentThermometerReading = dataSnapshot.getValue(ThermometerValue::class.java)
 
-                    Log.d(TAG, "Current temperature read is: $currentTemp")
+                    currentThermometerReading?.let {
+                        Log.d(TAG, "Current temperature read is: ${it.temp}")
 
-                    // Set the temperature text
-                    _textBabyTemperature.value =
-                        "${Utils.getDoubleToStringWithOneDecimal(currentTemp)} ºC"
+                        // Set the temperature text
+                        _textBabyTemperature.value =
+                            "${Utils.getDoubleToStringWithOneDecimal(it.temp)} ºC"
 
-                    // Set the temperature image
-                    val thresholds = MainApplication.instance.temperatureThresholds.value
-                    thresholds?.let {
-                        updateTemperatureResId(it)
+                        // Set the temperature image according to thresholds
+                        val thresholds = MainApplication.instance.temperatureThresholds.value
+                        thresholds?.let(this@BabyBoardViewModel::updateTemperatureResId)
                     }
                 }
 
@@ -137,11 +138,13 @@ class BabyBoardViewModel : ViewModel() {
     }
 
     fun updateTemperatureResId(thresholds: TemperatureThresholds) {
-        Log.i(TAG, "Updating temperature res id with received thresholds: $thresholds")
-        _imageBabyTemperatureResId.value = when {
-            currentTemp >= thresholds.highTemp -> R.drawable.ic_temperature_high
-            currentTemp <= thresholds.lowTemp -> R.drawable.ic_temperature_low
-            else -> R.drawable.ic_temperature_normal
+        currentThermometerReading?.let {
+            Log.i(TAG, "Updating temperature res id with received thresholds: $thresholds")
+            _imageBabyTemperatureResId.value = when {
+                it.temp >= thresholds.highTemp -> R.drawable.ic_temperature_high
+                it.temp <= thresholds.lowTemp -> R.drawable.ic_temperature_low
+                else -> R.drawable.ic_temperature_normal
+            }
         }
     }
 
