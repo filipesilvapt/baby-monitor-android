@@ -1,17 +1,19 @@
 package com.babyMonitor.models
 
 import com.babyMonitor.utils.Utils
-import com.google.gson.annotations.SerializedName
+import com.google.firebase.database.PropertyName
 
 class ThermometerValue {
 
-    @SerializedName("temp")
-    val temp: Double = 0.0
+    @get:PropertyName("temp")
+    @set:PropertyName("temp")
+    var temp: Double = 0.0
 
-    @SerializedName("timestamp")
-    val timestamp: String = ""
+    @get:PropertyName("timestamp")
+    @set:PropertyName("timestamp")
+    var timestamp: String = ""
 
     override fun toString(): String {
-        return "Temp: ${Utils.getDoubleOneDecimal(temp)} ºC Timestamp: $timestamp"
+        return "Temp: ${Utils.getDoubleToStringWithOneDecimal(temp)} ºC Timestamp: $timestamp"
     }
 }

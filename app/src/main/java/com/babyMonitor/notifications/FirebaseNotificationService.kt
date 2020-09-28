@@ -4,16 +4,13 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.media.AudioAttributes
-import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.babyMonitor.BuildConfig
 import com.babyMonitor.MainActivity
 import com.babyMonitor.R
 import com.babyMonitor.database.RTDatabasePaths
@@ -92,10 +89,7 @@ class FirebaseNotificationService : FirebaseMessagingService() {
         val channelId = getString(R.string.default_notification_channel_id)
         val channelName = getString(R.string.default_notification_channel_name)
         val channelDescription = getString(R.string.default_notification_channel_description)
-        val soundUri = Uri.parse(
-            ContentResolver.SCHEME_ANDROID_RESOURCE + "://"
-                    + BuildConfig.APPLICATION_ID + "/" + R.raw.baby_notification
-        )
+        val soundUri = Utils.getRawUri(R.raw.baby_notification)
         val vibratePattern = longArrayOf(1000, 1000, 1000, 1000, 1000)
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setDefaults(Notification.DEFAULT_ALL)

@@ -7,7 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
-import java.io.File
+import com.babyMonitor.BuildConfig
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.ParseException
@@ -19,7 +19,7 @@ object Utils {
 
     const val FORMAT_DATE_AND_TIME = "yyyyMMddHHmmss"
 
-    fun getDoubleOneDecimal(value: Double): String {
+    fun getDoubleToStringWithOneDecimal(value: Double): String {
         val df = DecimalFormat("0.0")
         df.roundingMode = RoundingMode.HALF_EVEN
         return df.format(value)
@@ -57,9 +57,9 @@ object Utils {
         )
     }
 
-    fun getRawUri(context: Context, filename: String): Uri? {
+    fun getRawUri(rawResourceId: Int): Uri? {
         return Uri.parse(
-            ContentResolver.SCHEME_ANDROID_RESOURCE + File.pathSeparator + File.separator.toString() + context.packageName.toString() + "/raw/" + filename
+            ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + BuildConfig.APPLICATION_ID + "/" + rawResourceId
         )
     }
 

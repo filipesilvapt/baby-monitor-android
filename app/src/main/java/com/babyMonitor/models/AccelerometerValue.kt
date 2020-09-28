@@ -1,24 +1,29 @@
 package com.babyMonitor.models
 
 import com.babyMonitor.utils.Utils
-import com.google.gson.annotations.SerializedName
+import com.google.firebase.database.PropertyName
 
 class AccelerometerValue {
 
-    @SerializedName("x_axis")
-    val xAxis: Double = 0.0
+    @get:PropertyName("x_axis")
+    @set:PropertyName("x_axis")
+    var xAxis: Double = 0.0
 
-    @SerializedName("y_axis")
-    val yAxis: Double = 0.0
+    @get:PropertyName("y_axis")
+    @set:PropertyName("y_axis")
+    var yAxis: Double = 0.0
 
-    @SerializedName("z_axis")
-    val zAxis: Double = 0.0
+    @get:PropertyName("z_axis")
+    @set:PropertyName("z_axis")
+    var zAxis: Double = 0.0
 
-    val timestamp: String = ""
+    @get:PropertyName("timestamp")
+    @set:PropertyName("timestamp")
+    var timestamp: String = ""
 
     override fun toString(): String {
-        return "X: ${Utils.getDoubleOneDecimal(xAxis)}" +
-                " Y: ${Utils.getDoubleOneDecimal(yAxis)}" +
-                " Z: ${Utils.getDoubleOneDecimal(zAxis)} Timestamp: $timestamp"
+        return "X: ${Utils.getDoubleToStringWithOneDecimal(xAxis)}" +
+                " Y: ${Utils.getDoubleToStringWithOneDecimal(yAxis)}" +
+                " Z: ${Utils.getDoubleToStringWithOneDecimal(zAxis)} Timestamp: $timestamp"
     }
 }

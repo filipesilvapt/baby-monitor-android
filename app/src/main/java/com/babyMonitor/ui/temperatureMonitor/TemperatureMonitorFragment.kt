@@ -9,10 +9,12 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.babyMonitor.MainApplication
 import com.babyMonitor.R
 import com.babyMonitor.charts.ChartYAxisLeftRenderer
 import com.babyMonitor.charts.DateTimeValueFormatter
 import com.babyMonitor.charts.TemperatureValueFormatter
+import com.babyMonitor.models.TemperatureThresholds
 import com.babyMonitor.models.ThermometerValue
 import com.babyMonitor.utils.Utils
 import com.github.mikephil.charting.animation.Easing
@@ -26,42 +28,68 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
 
 class TemperatureMonitorFragment : Fragment() {
 
-    private lateinit var temperatureMonitorViewModel: TemperatureMonitorViewModel
+    private lateinit var viewModel: TemperatureMonitorViewModel
 
     private lateinit var temperatureChart: LineChart
+
+    private var maxTemperatureValueVisible: Double = 0.0
+
+    private var minTemperatureValueVisible: Double = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        Log.i(TAG, "onCreateView - Starting observers")
+        Log.i(TAG, "onCreateView")
 
-        temperatureMonitorViewModel =
-            ViewModelProvider(this).get(TemperatureMonitorViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(TemperatureMonitorViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_temperature_monitor, container, false)
 
         temperatureChart = root.findViewById(R.id.chart_temperature)
 
-        setupChart()
+        // Setup the chart view
+        setupChartView()
 
-        temperatureMonitorViewModel.temperatureHistory.observe(viewLifecycleOwner, Observer {
+        return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        Log.i(TAG, "onViewCreated - Starting observers")
+
+        // Observe the temperature history list
+        viewModel.temperatureHistory.observe(viewLifecycleOwner, Observer {
             populateTemperatureGraph(it)
         })
 
-        temperatureMonitorViewModel.observeFirebaseBabyTemperatureHistory()
+        // Observe firebase temperature history
+        viewModel.observeFirebaseBabyTemperatureHistory()
 
-        return root
+        // Observe temperature thresholds
+        MainApplication.instance.temperatureThresholds.observe(
+            viewLifecycleOwner,
+            { thresholds: TemperatureThresholds ->
+                run {
+                    updateGraphBoundaryValues(thresholds)
+                    updateLimitLines(thresholds)
+                }
+            }
+        )
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         Log.i(TAG, "onDestroyView - Stopping observers")
-        temperatureMonitorViewModel.temperatureHistory.removeObservers(viewLifecycleOwner)
-        temperatureMonitorViewModel.stopObservingFirebaseBabyTemperatureHistory()
+
+        MainApplication.instance.temperatureThresholds.removeObservers(viewLifecycleOwner)
+
+        viewModel.temperatureHistory.removeObservers(viewLifecycleOwner)
+
+        viewModel.stopObservingFirebaseBabyTemperatureHistory()
     }
 
-    private fun setupChart() {
+    private fun setupChartView() {
         // Enable touch gestures
         temperatureChart.setTouchEnabled(true)
         temperatureChart.dragDecelerationFrictionCoef = 0.9f
@@ -121,32 +149,6 @@ class TemperatureMonitorFragment : Fragment() {
 
             // Draw limit lines behind the main graph line or not
             //setDrawLimitLinesBehindData(true)
-
-            val ll1 = LimitLine(
-                HIGH_TEMPERATURE_VALUE_THRESHOLD,
-                getString(R.string.chart_limit_temperature_max)
-            )
-            ll1.lineColor = ContextCompat.getColor(requireContext(), R.color.colorChartMaxValue)
-            ll1.lineWidth = 4f
-            //ll1.enableDashedLine(5f, 10f, 0f)
-            ll1.labelPosition = LimitLine.LimitLabelPosition.RIGHT_BOTTOM
-            ll1.textSize = 17f
-            ll1.textColor = ContextCompat.getColor(requireContext(), R.color.colorChartMaxValue)
-
-            val ll2 = LimitLine(
-                LOW_TEMPERATURE_VALUE_THRESHOLD,
-                getString(R.string.chart_limit_temperature_min)
-            )
-            ll2.lineColor = ContextCompat.getColor(requireContext(), R.color.colorChartMinValue)
-            ll2.lineWidth = 4f
-            //ll2.enableDashedLine(5f, 10f, 0f)
-            ll2.labelPosition = LimitLine.LimitLabelPosition.RIGHT_TOP
-            ll2.textSize = 17f
-            ll2.textColor = ContextCompat.getColor(requireContext(), R.color.colorChartMinValue)
-
-            removeAllLimitLines()
-            addLimitLine(ll1)
-            addLimitLine(ll2)
         }
 
     }
@@ -180,15 +182,15 @@ class TemperatureMonitorFragment : Fragment() {
                 )
             )
 
-            if (thermometerValue.temp.toFloat() > MAX_GRAPH_BOUNDARY_TEMPERATURE_VALUE) {
+            if (thermometerValue.temp.toFloat() > maxTemperatureValueVisible) {
                 isMaxTemperatureValueSurpassed = true
-            } else if (thermometerValue.temp.toFloat() < MIN_GRAPH_BOUNDARY_TEMPERATURE_VALUE) {
+            } else if (thermometerValue.temp.toFloat() < minTemperatureValueVisible) {
                 isMinTemperatureValueSurpassed = true
             }
         }
 
-        temperatureChart.axisLeft.axisMaximum = MAX_GRAPH_BOUNDARY_TEMPERATURE_VALUE
-        temperatureChart.axisLeft.axisMinimum = MIN_GRAPH_BOUNDARY_TEMPERATURE_VALUE
+        temperatureChart.axisLeft.axisMaximum = maxTemperatureValueVisible.toFloat()
+        temperatureChart.axisLeft.axisMinimum = minTemperatureValueVisible.toFloat()
 
         if (isMaxTemperatureValueSurpassed) temperatureChart.axisLeft.resetAxisMaximum()
         if (isMinTemperatureValueSurpassed) temperatureChart.axisLeft.resetAxisMinimum()
@@ -246,14 +248,50 @@ class TemperatureMonitorFragment : Fragment() {
         //}
     }
 
+    private fun updateGraphBoundaryValues(thresholds: TemperatureThresholds) {
+        maxTemperatureValueVisible = thresholds.highTemp + BOUNDARY_DIFFERENCE_FROM_THRESHOLD
+        minTemperatureValueVisible = thresholds.lowTemp - BOUNDARY_DIFFERENCE_FROM_THRESHOLD
+    }
+
+    private fun updateLimitLines(thresholds: TemperatureThresholds) {
+        Log.i(TAG, "Updating limit lines with thresholds: $thresholds")
+
+        temperatureChart.axisLeft.apply {
+            val ll1 = LimitLine(
+                thresholds.highTemp.toFloat(),
+                getString(R.string.chart_limit_temperature_max)
+            )
+            ll1.lineColor = ContextCompat.getColor(requireContext(), R.color.colorChartMaxValue)
+            ll1.lineWidth = 4f
+            //ll1.enableDashedLine(5f, 10f, 0f)
+            ll1.labelPosition = LimitLine.LimitLabelPosition.RIGHT_BOTTOM
+            ll1.textSize = 17f
+            ll1.textColor = ContextCompat.getColor(requireContext(), R.color.colorChartMaxValue)
+
+            val ll2 = LimitLine(
+                thresholds.lowTemp.toFloat(),
+                getString(R.string.chart_limit_temperature_min)
+            )
+            ll2.lineColor = ContextCompat.getColor(requireContext(), R.color.colorChartMinValue)
+            ll2.lineWidth = 4f
+            //ll2.enableDashedLine(5f, 10f, 0f)
+            ll2.labelPosition = LimitLine.LimitLabelPosition.RIGHT_TOP
+            ll2.textSize = 17f
+            ll2.textColor = ContextCompat.getColor(requireContext(), R.color.colorChartMinValue)
+
+            removeAllLimitLines()
+            addLimitLine(ll1)
+            addLimitLine(ll2)
+
+            // Refresh the chart
+            temperatureChart.invalidate()
+        }
+    }
+
     companion object {
         private val TAG: String = TemperatureMonitorFragment::class.java.simpleName
 
-        private const val MAX_GRAPH_BOUNDARY_TEMPERATURE_VALUE = 38.0f
-        private const val MIN_GRAPH_BOUNDARY_TEMPERATURE_VALUE = 35.5f
-
-        private const val HIGH_TEMPERATURE_VALUE_THRESHOLD = 37.5f
-        private const val LOW_TEMPERATURE_VALUE_THRESHOLD = 36f
+        private const val BOUNDARY_DIFFERENCE_FROM_THRESHOLD: Double = 0.5
     }
 
 }
