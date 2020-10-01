@@ -37,48 +37,72 @@ class FirebaseNotificationService : FirebaseMessagingService() {
         // Check if message contains a data payload.
         if (remoteMessage.data.isNotEmpty()) {
             Log.i(TAG, "Message data payload: ${remoteMessage.data}")
-            val temperatureReading: Float = remoteMessage.data["temperature"]?.toFloat() ?: -1f
 
-            when (val typeOfTempWarning: Int =
-                remoteMessage.data["typeOfTempWarning"]?.toInt() ?: 0) {
-                // High temperature (Fever)
-                1 -> {
-                    sendNotification(
-                        getString(R.string.notification_title_high_temperature),
-                        getString(
-                            R.string.notification_message_high_temperature,
-                            temperatureReading
-                        )
-                    )
-                }
-
-                // Low temperature (Cold)
-                -1 -> {
-                    sendNotification(
-                        getString(R.string.notification_title_low_temperature),
-                        getString(
-                            R.string.notification_message_low_temperature,
-                            temperatureReading
-                        )
-                    )
-                }
-
-                // Type not supported
+            when (remoteMessage.data[JSON_TAG_NOTIFICATION_TAG]?.toInt()) {
+                1 -> parseTemperatureNotification(remoteMessage)
+                2 -> parseSleepStateNotification(remoteMessage)
                 else -> {
-                    Log.w(TAG, "Type of temperature warning not supported: $typeOfTempWarning")
+                    Log.w(TAG, "Type of notification not supported")
                 }
             }
-
         }
+    }
+
+    private fun parseTemperatureNotification(remoteMessage: RemoteMessage) {
+        val temperatureReading: Float = remoteMessage.data[JSON_TAG_TEMPERATURE]?.toFloat() ?: -1f
+
+        when (val typeOfTempWarning: Int =
+            remoteMessage.data[JSON_TAG_TYPE_OF_TEMP_WARNING]?.toInt() ?: 0) {
+            // High temperature (Fever)
+            1 -> {
+                sendNotification(
+                    TEMPERATURE_NOTIFICATION_ID,
+                    getString(R.string.notification_title_high_temperature),
+                    getString(
+                        R.string.notification_message_high_temperature,
+                        temperatureReading
+                    )
+                )
+            }
+
+            // Low temperature (Cold)
+            -1 -> {
+                sendNotification(
+                    TEMPERATURE_NOTIFICATION_ID,
+                    getString(R.string.notification_title_low_temperature),
+                    getString(
+                        R.string.notification_message_low_temperature,
+                        temperatureReading
+                    )
+                )
+            }
+
+            // Type not supported
+            else -> {
+                Log.w(TAG, "Type of temperature warning not supported: $typeOfTempWarning")
+            }
+        }
+    }
+
+    private fun parseSleepStateNotification(remoteMessage: RemoteMessage) {
+        sendNotification(
+            SLEEP_STATE_NOTIFICATION_ID,
+            getString(R.string.notification_title_sleep_disturbed),
+            getString(
+                R.string.notification_message_sleep_disturbed,
+                remoteMessage.data[JSON_TAG_BABY_NAME]
+            )
+        )
     }
 
     /**
      * Create and show a notification containing the FCM data
      *
+     * @param notificationId Identifier of a notification
      * @param messageTitle Title shown in notification
      * @param messageBody Message shown in notification
      */
-    private fun sendNotification(messageTitle: String, messageBody: String) {
+    private fun sendNotification(notificationId: Int, messageTitle: String, messageBody: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val pendingIntent = PendingIntent.getActivity(
@@ -125,7 +149,7 @@ class FirebaseNotificationService : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        notificationManager.notify(0, notificationBuilder.build())
+        notificationManager.notify(notificationId, notificationBuilder.build())
     }
 
     /**
@@ -148,5 +172,13 @@ class FirebaseNotificationService : FirebaseMessagingService() {
 
     companion object {
         private val TAG: String = FirebaseNotificationService::class.java.simpleName
+
+        private const val TEMPERATURE_NOTIFICATION_ID = 1
+        private const val SLEEP_STATE_NOTIFICATION_ID = 2
+
+        private const val JSON_TAG_NOTIFICATION_TAG = "notification_type"
+        private const val JSON_TAG_TEMPERATURE = "temperature"
+        private const val JSON_TAG_TYPE_OF_TEMP_WARNING = "type_of_temp_warning"
+        private const val JSON_TAG_BABY_NAME = "baby_name"
     }
 }

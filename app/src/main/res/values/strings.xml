@@ -29,7 +29,9 @@
 
     <string name="notification_title_high_temperature">High Temperature</string>
     <string name="notification_title_low_temperature">Low Temperature</string>
+    <string name="notification_title_sleep_disturbed">Sleep Disturbed</string>
 
     <string name="notification_message_high_temperature">(Fever) Your baby\'s temperature is %1$.1f ºC</string>
     <string name="notification_message_low_temperature">(Cold) Your baby\'s temperature is %1$.1f ºC</string>
+    <string name="notification_message_sleep_disturbed">%1$s is having trouble sleeping</string>
 </resources>
