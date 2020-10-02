@@ -25,6 +25,14 @@
         android:theme="@style/NavigationViewStyle"
         app:headerLayout="@layout/nav_header_main"
         app:itemIconSize="40dp"
-        app:menu="@menu/activity_main_drawer" />
+        app:menu="@menu/activity_main_drawer">
+
+        <include
+            layout="@layout/nav_footer_main"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom" />
+
+    </com.google.android.material.navigation.NavigationView>
 
 </androidx.drawerlayout.widget.DrawerLayout>

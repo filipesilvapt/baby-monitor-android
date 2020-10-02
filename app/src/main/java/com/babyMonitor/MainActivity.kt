@@ -1,6 +1,7 @@
 package com.babyMonitor
 
 import android.os.Bundle
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
@@ -36,6 +37,9 @@ class MainActivity : AppCompatActivity() {
 
         // Allow drawables in the icons instead of tinted icons
         navigationView.itemIconTintList = null
+
+        // Set the version value in the drawer footer
+        findViewById<TextView>(R.id.version_value).text = BuildConfig.VERSION_NAME
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -43,4 +47,5 @@ class MainActivity : AppCompatActivity() {
         // drawer menu, depending on the situation
         return navController.navigateUp(drawerLayout) || super.onSupportNavigateUp()
     }
+
 }

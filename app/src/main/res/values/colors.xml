@@ -2,7 +2,9 @@
 <resources>
     <color name="colorPrimary">#00BCD4</color>
     <color name="colorPrimaryDark">#00BCD4</color>
-    <color name="colorAccent">#d6fbe4</color>
+    <color name="colorAccent">#D6FBE4</color>
+    <color name="colorNeutral">#656565</color>
+    <color name="colorNeutralDark">#171717</color>
 
     <color name="colorChartMaxValue">#FF7474</color>
     <color name="colorChartMinValue">#97C6FF</color>

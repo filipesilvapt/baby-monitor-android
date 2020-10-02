@@ -9,6 +9,7 @@
     <string name="menu_baby_board">Baby Board</string>
     <string name="menu_temp_monitor">Temperature</string>
     <string name="menu_sleep_monitor">Sleep Monitor</string>
+    <string name="menu_version">Version</string>
 
     <string name="content_desc_baby_picture">Baby picture</string>
     <string name="content_desc_baby_temperature">Baby temperature</string>
