@@ -107,15 +107,20 @@ class BabyBoardViewModel : ViewModel() {
 
     fun observeFirebaseBabyTemperature() {
         val database = Firebase.database
-        babyTemperatureRef = database.getReference(RTDatabasePaths.PATH_LAST_THERMOMETER_READING)
+        babyTemperatureRef = database.getReference(RTDatabasePaths.PATH_THERMOMETER_READINGS)
+
+        val rowsToQuery = 1
 
         // Read from the database
-        babyTemperatureListener =
-            babyTemperatureRef.addValueEventListener(object : ValueEventListener {
+        babyTemperatureListener = babyTemperatureRef.limitToLast(rowsToQuery)
+            .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    currentThermometerReading = dataSnapshot.getValue(ThermometerValue::class.java)
+                    for (postSnapshot in dataSnapshot.children.) {
+                        currentThermometerReading =
+                            postSnapshot.getValue(ThermometerValue::class.java)
+                    }
 
                     currentThermometerReading?.let {
                         Log.d(TAG, "Current temperature read is: ${it.temp}")
