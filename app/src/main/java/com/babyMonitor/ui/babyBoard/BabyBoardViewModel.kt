@@ -117,7 +117,7 @@ class BabyBoardViewModel : ViewModel() {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    for (postSnapshot in dataSnapshot.children.) {
+                    for (postSnapshot in dataSnapshot.children) {
                         currentThermometerReading =
                             postSnapshot.getValue(ThermometerValue::class.java)
                     }

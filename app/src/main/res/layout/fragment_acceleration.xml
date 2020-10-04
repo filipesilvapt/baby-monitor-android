@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.sleepMonitor.SleepMonitorFragment">
+    tools:context=".ui.sleepMonitor.AccelerationFragment">
 
-    <com.github.mikephil.charting.charts.BubbleChart
-        android:id="@+id/chart_sleep_state"
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart_acceleration"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginLeft="10dp"
@@ -33,6 +33,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/chart_sleep_state" />
+        app:layout_constraintTop_toBottomOf="@+id/chart_acceleration" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

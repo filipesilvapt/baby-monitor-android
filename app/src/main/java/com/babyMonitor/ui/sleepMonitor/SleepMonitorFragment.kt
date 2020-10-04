@@ -12,21 +12,22 @@ import androidx.lifecycle.ViewModelProvider
 import com.babyMonitor.R
 import com.babyMonitor.charts.AxisValueFormatter
 import com.babyMonitor.charts.DateTimeValueFormatter
-import com.babyMonitor.models.AccelerometerValue
+import com.babyMonitor.charts.SleepDeviationsRenderer
+import com.babyMonitor.models.SleepDeviationValue
 import com.babyMonitor.utils.Utils
 import com.github.mikephil.charting.animation.Easing
-import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.charts.BubbleChart
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
+import com.github.mikephil.charting.data.BubbleData
+import com.github.mikephil.charting.data.BubbleDataSet
+import com.github.mikephil.charting.data.BubbleEntry
+import com.github.mikephil.charting.interfaces.datasets.IBubbleDataSet
 
 class SleepMonitorFragment : Fragment() {
 
     private lateinit var sleepMonitorViewModel: SleepMonitorViewModel
 
-    private lateinit var sleepStateChart: LineChart
+    private lateinit var sleepStateChart: BubbleChart
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,11 +44,11 @@ class SleepMonitorFragment : Fragment() {
 
         setupChart()
 
-        sleepMonitorViewModel.accelerometerHistory.observe(viewLifecycleOwner, Observer {
+        sleepMonitorViewModel.sleepDeviationsHistory.observe(viewLifecycleOwner, Observer {
             populateSleepStateGraph(it)
         })
 
-        sleepMonitorViewModel.observeFirebaseBabyAccelerometerHistory()
+        sleepMonitorViewModel.observeFirebaseSleepDeviationsHistory()
 
         return root
     }
@@ -55,23 +56,25 @@ class SleepMonitorFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         Log.i(TAG, "onDestroyView - Stopping observers")
-        sleepMonitorViewModel.accelerometerHistory.removeObservers(viewLifecycleOwner)
-        sleepMonitorViewModel.stopObservingFirebaseBabyAccelerometerHistory()
+        sleepMonitorViewModel.sleepDeviationsHistory.removeObservers(viewLifecycleOwner)
+        sleepMonitorViewModel.stopObservingFirebaseSleepDeviationsHistory()
     }
 
     private fun setupChart() {
-        // Enable touch gestures
-        sleepStateChart.setTouchEnabled(true)
-        sleepStateChart.dragDecelerationFrictionCoef = 0.9f
-
-        // Enable scaling and dragging
-        sleepStateChart.isDragEnabled = true
-        sleepStateChart.setScaleEnabled(true)
-        sleepStateChart.setDrawGridBackground(false)
-        sleepStateChart.isHighlightPerDragEnabled = true
-
         // General chart customizations
         sleepStateChart.apply {
+            // Enable touch gestures
+            setTouchEnabled(true)
+            dragDecelerationFrictionCoef = 0.9f
+
+            // Enable scaling and dragging
+            isDragEnabled = true
+            setScaleEnabled(true)
+            setDrawGridBackground(false)
+            isHighlightPerDragEnabled = true
+
+            renderer = SleepDeviationsRenderer(this, animator, viewPortHandler)
+
             // Hide the right axis values
             axisRight.isEnabled = false
 
@@ -95,7 +98,7 @@ class SleepMonitorFragment : Fragment() {
             textSize = 14f
             valueFormatter = DateTimeValueFormatter()
             labelRotationAngle = -45f
-            granularity = 200f
+            granularity = 10000f
         }
 
         //  Y Axis (Left) customizations -------
@@ -110,100 +113,84 @@ class SleepMonitorFragment : Fragment() {
 
     }
 
-    private fun populateSleepStateGraph(accelerometerHistory: List<AccelerometerValue>) {
-        if (accelerometerHistory.isEmpty()) return
+    private fun populateSleepStateGraph(sleepDeviationsHistory: List<SleepDeviationValue>) {
+        if (sleepDeviationsHistory.isEmpty()) return
 
-        val valuesX: ArrayList<Entry> = ArrayList()
-        val valuesY: ArrayList<Entry> = ArrayList()
-        val valuesZ: ArrayList<Entry> = ArrayList()
+        val deviationsTypeA: ArrayList<BubbleEntry> = ArrayList()
+        val deviationsTypeB: ArrayList<BubbleEntry> = ArrayList()
 
         // Get the first reading as the reference value to lower every X axis value in order for
         // the library to be able to manage them.
         // REF: https://github.com/PhilJay/MPAndroidChart/issues/789#issuecomment-241507904
-        val firstAccelerometerReadingMillis: Long = Utils.getDateInMilliSeconds(
-            accelerometerHistory[0].timestamp,
+        val firstDeviationMillis: Long = Utils.getDateInMilliSeconds(
+            sleepDeviationsHistory[0].timestamp,
             Utils.FORMAT_DATE_AND_TIME
         )
 
         var entryTimestamp: Float
 
-        accelerometerHistory.forEach { accelerometerValue ->
+        sleepDeviationsHistory.forEach { deviationValue ->
             entryTimestamp = (Utils.getDateInMilliSeconds(
-                accelerometerValue.timestamp,
+                deviationValue.timestamp,
                 Utils.FORMAT_DATE_AND_TIME
-            ) - firstAccelerometerReadingMillis).toFloat()
+            ) - firstDeviationMillis).toFloat()
 
-            valuesX.add(
-                Entry(
-                    // date and time in milliseconds minus the reference value
-                    entryTimestamp,
-                    // accelerometer reading
-                    accelerometerValue.xAxis.toFloat()
+            if (deviationValue.typeOfDeviation == DEVIATION_TYPE_INTERMEDIARY) {
+                deviationsTypeA.add(
+                    BubbleEntry(
+                        // date and time in milliseconds minus the reference value
+                        entryTimestamp,
+                        // deviation reading
+                        deviationValue.deviation.toFloat(),
+                        120f
+                        /*ContextCompat.getDrawable(
+                            requireContext(),
+                            R.drawable.ic_emotion_state_agitated
+                        )*/
+                    )
                 )
-            )
-
-            valuesY.add(
-                Entry(
-                    // date and time in milliseconds minus the reference value
-                    entryTimestamp,
-                    // accelerometer reading
-                    accelerometerValue.yAxis.toFloat()
+            } else if (deviationValue.typeOfDeviation == DEVIATION_TYPE_NOTIFICATION) {
+                deviationsTypeB.add(
+                    BubbleEntry(
+                        // date and time in milliseconds minus the reference value
+                        entryTimestamp,
+                        // deviation reading
+                        deviationValue.deviation.toFloat(),
+                        120f
+                        /*ContextCompat.getDrawable(
+                            requireContext(),
+                            R.drawable.ic_emotion_state_disturbed
+                        )*/
+                    )
                 )
-            )
-
-            valuesZ.add(
-                Entry(
-                    // date and time in milliseconds minus the reference value
-                    entryTimestamp,
-                    // accelerometer reading
-                    accelerometerValue.zAxis.toFloat()
-                )
-            )
+            }
         }
 
-        val set1: LineDataSet
-        set1 = LineDataSet(valuesX, "X Axis")
-        set1.setDrawValues(false)
-        set1.setDrawIcons(false)
-        set1.color = ContextCompat.getColor(requireContext(), R.color.colorChartLine)
-        set1.lineWidth = 4f
-        set1.disableDashedLine()
-        set1.setDrawCircles(false)
-        set1.mode = LineDataSet.Mode.HORIZONTAL_BEZIER
-        set1.setDrawFilled(false)
+        val set1 = BubbleDataSet(deviationsTypeA, "Deviations").apply {
+            setDrawValues(true)
+            setDrawIcons(true)
+            color = ContextCompat.getColor(requireContext(), R.color.colorChartLine)
+            isNormalizeSizeEnabled = false
+        }
 
-        val set2: LineDataSet
-        set2 = LineDataSet(valuesY, "Y Axis")
-        set2.setDrawValues(false)
-        set2.setDrawIcons(false)
-        set2.color = ContextCompat.getColor(requireContext(), R.color.colorChartMinValue)
-        set2.lineWidth = 4f
-        set2.disableDashedLine()
-        set2.setDrawCircles(false)
-        set2.mode = LineDataSet.Mode.HORIZONTAL_BEZIER
-        set2.setDrawFilled(false)
-
-        val set3: LineDataSet
-        set3 = LineDataSet(valuesZ, "Z Axis")
-        set3.setDrawValues(false)
-        set3.setDrawIcons(false)
-        set3.color = ContextCompat.getColor(requireContext(), R.color.colorChartMaxValue)
-        set3.lineWidth = 4f
-        set3.disableDashedLine()
-        set3.setDrawCircles(false)
-        set3.mode = LineDataSet.Mode.HORIZONTAL_BEZIER
-        set3.setDrawFilled(false)
+        val set2 = BubbleDataSet(deviationsTypeB, "Notifications").apply {
+            setDrawValues(true)
+            setDrawIcons(true)
+            color = ContextCompat.getColor(requireContext(), R.color.colorChartMinValue)
+            isNormalizeSizeEnabled = false
+        }
 
         // Re-init value formatter with new base value
         sleepStateChart.xAxis.valueFormatter =
-            DateTimeValueFormatter(firstAccelerometerReadingMillis)
+            DateTimeValueFormatter(firstDeviationMillis)
 
-        val dataSets: ArrayList<ILineDataSet> = ArrayList()
+        val dataSets: ArrayList<IBubbleDataSet> = ArrayList()
         dataSets.add(set1)
         dataSets.add(set2)
-        dataSets.add(set3)
 
-        val data = LineData(dataSets)
+        val data = BubbleData(dataSets)
+        data.setDrawValues(true)
+        data.setHighlightCircleWidth(1.5f)
         sleepStateChart.data = data
 
         // Refresh the chart with the new data
@@ -212,6 +199,9 @@ class SleepMonitorFragment : Fragment() {
 
     companion object {
         private val TAG: String = SleepMonitorFragment::class.java.simpleName
+
+        private const val DEVIATION_TYPE_INTERMEDIARY: Int = 1
+        private const val DEVIATION_TYPE_NOTIFICATION: Int = 2
     }
 
 }

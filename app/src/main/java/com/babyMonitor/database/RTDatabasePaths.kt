@@ -14,5 +14,7 @@ object RTDatabasePaths {
 
     const val PATH_ACCELEROMETER_READINGS: String = "$DATABASE_NODE_ID/accelerometer_readings"
 
+    const val PATH_SLEEP_DEVIATIONS: String = "$DATABASE_NODE_ID/sleep_deviations"
+
     const val PATH_TEMPERATURE_THRESHOLDS: String = "$DATABASE_NODE_ID/temperature_thresholds"
 }

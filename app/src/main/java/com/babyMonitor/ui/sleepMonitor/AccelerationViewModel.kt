@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.babyMonitor.database.RTDatabasePaths
-import com.babyMonitor.models.SleepDeviationValue
+import com.babyMonitor.models.AccelerometerValue
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -13,42 +13,42 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
-class SleepMonitorViewModel : ViewModel() {
+class AccelerationViewModel : ViewModel() {
 
-    private val _sleepDeviationsHistory = MutableLiveData<List<SleepDeviationValue>>().apply {
+    private val _accelerometerHistory = MutableLiveData<List<AccelerometerValue>>().apply {
         value = emptyList()
     }
-    val sleepDeviationsHistory: LiveData<List<SleepDeviationValue>> = _sleepDeviationsHistory
+    val accelerometerHistory: LiveData<List<AccelerometerValue>> = _accelerometerHistory
 
-    private lateinit var sleepDeviationsRef: DatabaseReference
+    private lateinit var accelerometerRef: DatabaseReference
 
-    private lateinit var sleepDeviationsListener: ValueEventListener
+    private lateinit var thermometerListener: ValueEventListener
 
-    fun observeFirebaseSleepDeviationsHistory() {
+    fun observeFirebaseBabyAccelerometerHistory() {
         val database = Firebase.database
-        sleepDeviationsRef = database.getReference(RTDatabasePaths.PATH_SLEEP_DEVIATIONS)
+        accelerometerRef = database.getReference(RTDatabasePaths.PATH_ACCELEROMETER_READINGS)
 
         val rowsToQuery = 100
 
         // Read from the database
-        sleepDeviationsListener = sleepDeviationsRef.limitToLast(rowsToQuery)
+        thermometerListener = accelerometerRef.limitToLast(rowsToQuery)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    val listOfTempValues: MutableList<SleepDeviationValue> = ArrayList()
+                    val listOfTempValues: MutableList<AccelerometerValue> = ArrayList()
 
                     Log.d(TAG, "-------------------------------------------")
                     for (postSnapshot in dataSnapshot.children) {
-                        val value = postSnapshot.getValue(SleepDeviationValue::class.java)
-                        Log.d(TAG, "Sleep deviation is: $value")
+                        val value = postSnapshot.getValue(AccelerometerValue::class.java)
+                        Log.d(TAG, "Accelerometer read is: $value")
 
                         value?.let {
                             listOfTempValues.add(it)
                         }
                     }
 
-                    _sleepDeviationsHistory.value = listOfTempValues
+                    _accelerometerHistory.value = listOfTempValues
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -58,11 +58,11 @@ class SleepMonitorViewModel : ViewModel() {
             })
     }
 
-    fun stopObservingFirebaseSleepDeviationsHistory() {
-        sleepDeviationsRef.removeEventListener(sleepDeviationsListener)
+    fun stopObservingFirebaseBabyAccelerometerHistory() {
+        accelerometerRef.removeEventListener(thermometerListener)
     }
 
     companion object {
-        private val TAG: String = SleepMonitorViewModel::class.java.simpleName
+        private val TAG: String = AccelerationViewModel::class.java.simpleName
     }
 }
