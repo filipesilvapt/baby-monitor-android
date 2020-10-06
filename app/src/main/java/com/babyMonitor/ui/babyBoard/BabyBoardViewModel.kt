@@ -8,9 +8,11 @@ import androidx.lifecycle.ViewModel
 import com.babyMonitor.MainApplication
 import com.babyMonitor.R
 import com.babyMonitor.database.RTDatabasePaths
+import com.babyMonitor.models.SleepStateValue
 import com.babyMonitor.models.TemperatureThresholds
 import com.babyMonitor.models.ThermometerValue
 import com.babyMonitor.utils.FireOnceEvent
+import com.babyMonitor.utils.SleepState
 import com.babyMonitor.utils.Utils
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -96,7 +98,7 @@ class BabyBoardViewModel : ViewModel() {
 
             override fun onCancelled(error: DatabaseError) {
                 // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException())
+                Log.w(TAG, "Failed to read firebase baby name value.", error.toException())
             }
         })
     }
@@ -137,7 +139,11 @@ class BabyBoardViewModel : ViewModel() {
 
                 override fun onCancelled(error: DatabaseError) {
                     // Failed to read value
-                    Log.w(TAG, "Failed to read value.", error.toException())
+                    Log.w(
+                        TAG,
+                        "Failed to read firebase baby temperature value.",
+                        error.toException()
+                    )
                 }
             })
     }
@@ -159,41 +165,56 @@ class BabyBoardViewModel : ViewModel() {
 
     fun observeFirebaseBabySleepState() {
         val database = Firebase.database
-        babySleepStateRef = database.getReference(RTDatabasePaths.PATH_LAST_SLEEP_STATE)
+        babySleepStateRef = database.getReference(RTDatabasePaths.PATH_SLEEP_STATES)
+
+        val rowsToQuery = 1
 
         // Read from the database
-        babySleepStateListener =
-            babySleepStateRef.addValueEventListener(object : ValueEventListener {
+        babySleepStateListener = babySleepStateRef.limitToLast(rowsToQuery)
+            .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    val currentSleepState = dataSnapshot.getValue(Int::class.java)
-                    Log.d(TAG, "Current sleep state is: $currentSleepState")
+                    var currentSleepState: SleepStateValue? = null
 
-                    when (currentSleepState) {
-                        // Baby is agitated
-                        1 -> {
-                            _textBabySleepStateResId.value = R.string.emotion_state_agitated
-                            _imageBabySleepStateResId.value = R.drawable.ic_emotion_state_agitated
-                        }
+                    for (postSnapshot in dataSnapshot.children) {
+                        currentSleepState = postSnapshot.getValue(SleepStateValue::class.java)
+                    }
 
-                        // Baby is disturbed
-                        2 -> {
-                            _textBabySleepStateResId.value = R.string.emotion_state_disturbed
-                            _imageBabySleepStateResId.value = R.drawable.ic_emotion_state_disturbed
-                        }
+                    currentSleepState?.let {
+                        Log.d(TAG, "Current sleep state is: $currentSleepState")
 
-                        // Value 0 or default is baby sleeping
-                        else -> {
-                            _textBabySleepStateResId.value = R.string.emotion_state_sleep
-                            _imageBabySleepStateResId.value = R.drawable.ic_emotion_state_sleep
+                        when (currentSleepState.state) {
+                            // Baby is agitated
+                            SleepState.AGITATED.value -> {
+                                _textBabySleepStateResId.value = R.string.emotion_state_agitated
+                                _imageBabySleepStateResId.value =
+                                    R.drawable.ic_emotion_state_agitated
+                            }
+
+                            // Baby is disturbed
+                            SleepState.DISTURBED.value -> {
+                                _textBabySleepStateResId.value = R.string.emotion_state_disturbed
+                                _imageBabySleepStateResId.value =
+                                    R.drawable.ic_emotion_state_disturbed
+                            }
+
+                            // Value 0 or default is baby sleeping
+                            else -> {
+                                _textBabySleepStateResId.value = R.string.emotion_state_sleep
+                                _imageBabySleepStateResId.value = R.drawable.ic_emotion_state_sleep
+                            }
                         }
                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     // Failed to read value
-                    Log.w(TAG, "Failed to read value.", error.toException())
+                    Log.w(
+                        TAG,
+                        "Failed to read firebase baby sleep state value.",
+                        error.toException()
+                    )
                 }
             })
     }

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="colorPrimaryLight">#BEDDE1</color>
     <color name="colorPrimary">#00BCD4</color>
-    <color name="colorPrimaryDark">#00BCD4</color>
+    <color name="colorPrimaryDark">#35AADF</color>
     <color name="colorAccent">#D6FBE4</color>
+    <color name="colorNeutralLight">#CACACA</color>
     <color name="colorNeutral">#656565</color>
-    <color name="colorNeutralDark">#171717</color>
+    <color name="colorNeutralDark">#2E2E2E</color>
 
     <color name="colorChartMaxValue">#FF7474</color>
     <color name="colorChartMinValue">#97C6FF</color>

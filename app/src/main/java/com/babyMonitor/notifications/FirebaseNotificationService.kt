@@ -39,8 +39,8 @@ class FirebaseNotificationService : FirebaseMessagingService() {
             Log.i(TAG, "Message data payload: ${remoteMessage.data}")
 
             when (remoteMessage.data[JSON_TAG_NOTIFICATION_TAG]?.toInt()) {
-                1 -> parseTemperatureNotification(remoteMessage)
-                2 -> parseSleepStateNotification(remoteMessage)
+                NOTIFICATION_TYPE_TEMPERATURE -> parseTemperatureNotification(remoteMessage)
+                NOTIFICATION_TYPE_SLEEP_STATE -> parseSleepStateNotification(remoteMessage)
                 else -> {
                     Log.w(TAG, "Type of notification not supported")
                 }
@@ -54,7 +54,7 @@ class FirebaseNotificationService : FirebaseMessagingService() {
         when (val typeOfTempWarning: Int =
             remoteMessage.data[JSON_TAG_TYPE_OF_TEMP_WARNING]?.toInt() ?: 0) {
             // High temperature (Fever)
-            1 -> {
+            TYPE_OF_TEMP_WARNING_FEVER -> {
                 sendNotification(
                     TEMPERATURE_NOTIFICATION_ID,
                     getString(R.string.notification_title_high_temperature),
@@ -66,7 +66,7 @@ class FirebaseNotificationService : FirebaseMessagingService() {
             }
 
             // Low temperature (Cold)
-            -1 -> {
+            TYPE_OF_TEMP_WARNING_COLD -> {
                 sendNotification(
                     TEMPERATURE_NOTIFICATION_ID,
                     getString(R.string.notification_title_low_temperature),
@@ -173,8 +173,14 @@ class FirebaseNotificationService : FirebaseMessagingService() {
     companion object {
         private val TAG: String = FirebaseNotificationService::class.java.simpleName
 
+        private const val NOTIFICATION_TYPE_TEMPERATURE = 1
+        private const val NOTIFICATION_TYPE_SLEEP_STATE = 2
+
         private const val TEMPERATURE_NOTIFICATION_ID = 1
         private const val SLEEP_STATE_NOTIFICATION_ID = 2
+
+        private const val TYPE_OF_TEMP_WARNING_FEVER = 1
+        private const val TYPE_OF_TEMP_WARNING_COLD = -1
 
         private const val JSON_TAG_NOTIFICATION_TAG = "notification_type"
         private const val JSON_TAG_TEMPERATURE = "temperature"

@@ -8,13 +8,9 @@ object RTDatabasePaths {
 
     const val PATH_BABY_NAME: String = "$DATABASE_NODE_ID/baby_name"
 
-    const val PATH_LAST_SLEEP_STATE: String = "$DATABASE_NODE_ID/last_sleep_state"
-
     const val PATH_THERMOMETER_READINGS: String = "$DATABASE_NODE_ID/thermometer_readings"
 
-    const val PATH_ACCELEROMETER_READINGS: String = "$DATABASE_NODE_ID/accelerometer_readings"
-
-    const val PATH_SLEEP_DEVIATIONS: String = "$DATABASE_NODE_ID/sleep_deviations"
+    const val PATH_SLEEP_STATES: String = "$DATABASE_NODE_ID/sleep_states"
 
     const val PATH_TEMPERATURE_THRESHOLDS: String = "$DATABASE_NODE_ID/temperature_thresholds"
 }

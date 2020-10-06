@@ -53,7 +53,11 @@ class TemperatureMonitorViewModel : ViewModel() {
 
                 override fun onCancelled(error: DatabaseError) {
                     // Failed to read value
-                    Log.w(TAG, "Failed to read value.", error.toException())
+                    Log.w(
+                        TAG,
+                        "Failed to read firebase baby temperature history.",
+                        error.toException()
+                    )
                 }
             })
     }

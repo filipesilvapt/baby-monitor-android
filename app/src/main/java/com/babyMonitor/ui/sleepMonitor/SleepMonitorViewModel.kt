@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.babyMonitor.database.RTDatabasePaths
-import com.babyMonitor.models.SleepDeviationValue
+import com.babyMonitor.models.SleepStateValue
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -15,51 +15,51 @@ import com.google.firebase.ktx.Firebase
 
 class SleepMonitorViewModel : ViewModel() {
 
-    private val _sleepDeviationsHistory = MutableLiveData<List<SleepDeviationValue>>().apply {
+    private val _sleepStatesHistory = MutableLiveData<List<SleepStateValue>>().apply {
         value = emptyList()
     }
-    val sleepDeviationsHistory: LiveData<List<SleepDeviationValue>> = _sleepDeviationsHistory
+    val sleepStatesHistory: LiveData<List<SleepStateValue>> = _sleepStatesHistory
 
-    private lateinit var sleepDeviationsRef: DatabaseReference
+    private lateinit var sleepStatesRef: DatabaseReference
 
-    private lateinit var sleepDeviationsListener: ValueEventListener
+    private lateinit var sleepStatesListener: ValueEventListener
 
-    fun observeFirebaseSleepDeviationsHistory() {
+    fun observeFirebaseSleepStatesHistory() {
         val database = Firebase.database
-        sleepDeviationsRef = database.getReference(RTDatabasePaths.PATH_SLEEP_DEVIATIONS)
+        sleepStatesRef = database.getReference(RTDatabasePaths.PATH_SLEEP_STATES)
 
         val rowsToQuery = 100
 
         // Read from the database
-        sleepDeviationsListener = sleepDeviationsRef.limitToLast(rowsToQuery)
+        sleepStatesListener = sleepStatesRef.limitToLast(rowsToQuery)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    val listOfTempValues: MutableList<SleepDeviationValue> = ArrayList()
+                    val listOfSleepStates: MutableList<SleepStateValue> = ArrayList()
 
                     Log.d(TAG, "-------------------------------------------")
                     for (postSnapshot in dataSnapshot.children) {
-                        val value = postSnapshot.getValue(SleepDeviationValue::class.java)
-                        Log.d(TAG, "Sleep deviation is: $value")
+                        val value = postSnapshot.getValue(SleepStateValue::class.java)
+                        Log.d(TAG, "Sleep state is: $value")
 
                         value?.let {
-                            listOfTempValues.add(it)
+                            listOfSleepStates.add(it)
                         }
                     }
 
-                    _sleepDeviationsHistory.value = listOfTempValues
+                    _sleepStatesHistory.value = listOfSleepStates
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     // Failed to read value
-                    Log.w(TAG, "Failed to read value.", error.toException())
+                    Log.w(TAG, "Failed to read firebase sleep states history.", error.toException())
                 }
             })
     }
 
-    fun stopObservingFirebaseSleepDeviationsHistory() {
-        sleepDeviationsRef.removeEventListener(sleepDeviationsListener)
+    fun stopObservingFirebaseSleepStatesHistory() {
+        sleepStatesRef.removeEventListener(sleepStatesListener)
     }
 
     companion object {

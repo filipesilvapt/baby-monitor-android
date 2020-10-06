@@ -6,7 +6,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Log
 import com.babyMonitor.BuildConfig
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -14,10 +13,12 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
-
 object Utils {
 
     const val FORMAT_DATE_AND_TIME = "yyyyMMddHHmmss"
+    const val FORMAT_DATE = "yyyyMMdd"
+    const val FORMAT_DATE_TYPE_HEADER = "EEEE - dd MMM yyyy"
+    const val FORMAT_HOURS_MINUTES = "HH:mm"
 
     fun getDoubleToStringWithOneDecimal(value: Double): String {
         val df = DecimalFormat("0.0")
@@ -30,7 +31,8 @@ object Utils {
         var timeInMilliseconds: Long = 1
         try {
             // Convert the UTC given time in the given format to millis
-            var parsedDate: Date = sdf.parse(givenDateString)
+            var parsedDate: Date? = sdf.parse(givenDateString)
+            parsedDate ?: kotlin.run { throw KotlinNullPointerException() }
             timeInMilliseconds = parsedDate.time
 
             // Create a calendar to add the timezone offset
@@ -45,8 +47,21 @@ object Utils {
         } catch (e: ParseException) {
             e.printStackTrace()
         }
-        Log.d("TEST", "date: $givenDateString millis: $timeInMilliseconds")
+
         return timeInMilliseconds
+    }
+
+    fun convertMillisToDateFormat(timeInMillis: Long, dateFormat: String): String {
+        // Set a new calendar with the default timezone and the given time
+        val tz = TimeZone.getDefault()
+        val calendar = Calendar.getInstance(tz)
+        calendar.timeInMillis = timeInMillis
+
+        // Set the output format
+        val formatter = SimpleDateFormat(dateFormat, Locale.getDefault())
+        formatter.timeZone = tz
+
+        return formatter.format(calendar.time)
     }
 
     @SuppressLint("HardwareIds")
