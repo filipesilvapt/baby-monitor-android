@@ -10,7 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import com.babyMonitor.MainApplication
 import com.babyMonitor.databinding.FragmentBabyBoardBinding
-import com.babyMonitor.models.TemperatureThresholds
+import com.babyMonitor.models.TemperatureThresholdsModel
 import com.babyMonitor.utils.EventObserver
 
 class BabyBoardFragment : Fragment() {
@@ -79,7 +79,7 @@ class BabyBoardFragment : Fragment() {
         // Observe temperature thresholds
         MainApplication.instance.temperatureThresholds.observe(
             viewLifecycleOwner,
-            { thresholds: TemperatureThresholds -> viewModel.updateTemperatureResId(thresholds) }
+            { thresholds: TemperatureThresholdsModel -> viewModel.updateTemperatureResId(thresholds) }
         )
 
         // Observe firebase baby name

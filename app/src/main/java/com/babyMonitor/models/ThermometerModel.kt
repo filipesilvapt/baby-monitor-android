@@ -3,7 +3,7 @@ package com.babyMonitor.models
 import com.babyMonitor.utils.Utils
 import com.google.firebase.database.PropertyName
 
-class ThermometerValue(
+class ThermometerModel(
     @get:PropertyName("temp")
     @set:PropertyName("temp")
     var temp: Double = 0.0,

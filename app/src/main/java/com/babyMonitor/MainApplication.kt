@@ -5,7 +5,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.babyMonitor.database.RTDatabasePaths
-import com.babyMonitor.models.TemperatureThresholds
+import com.babyMonitor.models.TemperatureThresholdsModel
+import com.babyMonitor.utils.Constants
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -17,13 +18,13 @@ class MainApplication : Application() {
 
     private lateinit var temperatureThresholdsRef: DatabaseReference
 
-    private val _temperatureThresholds = MutableLiveData<TemperatureThresholds>().apply {
-        value = TemperatureThresholds(
-            HIGH_TEMPERATURE_DEFAULT_THRESHOLD,
-            LOW_TEMPERATURE_DEFAULT_THRESHOLD
+    private val _temperatureThresholds = MutableLiveData<TemperatureThresholdsModel>().apply {
+        value = TemperatureThresholdsModel(
+            Constants.HIGH_TEMPERATURE_DEFAULT_THRESHOLD,
+            Constants.LOW_TEMPERATURE_DEFAULT_THRESHOLD
         )
     }
-    val temperatureThresholds: LiveData<TemperatureThresholds> = _temperatureThresholds
+    val temperatureThresholds: LiveData<TemperatureThresholdsModel> = _temperatureThresholds
 
     override fun onCreate() {
         super.onCreate()
@@ -46,7 +47,7 @@ class MainApplication : Application() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
-                val value = dataSnapshot.getValue(TemperatureThresholds::class.java)
+                val value = dataSnapshot.getValue(TemperatureThresholdsModel::class.java)
                 Log.i(TAG, "Temperature thresholds are: $value")
 
                 value?.let {
@@ -66,8 +67,5 @@ class MainApplication : Application() {
 
         lateinit var instance: MainApplication
             private set
-
-        private const val HIGH_TEMPERATURE_DEFAULT_THRESHOLD: Double = 37.5
-        private const val LOW_TEMPERATURE_DEFAULT_THRESHOLD: Double = 36.0
     }
 }

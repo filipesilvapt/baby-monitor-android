@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.babyMonitor.R
-import com.babyMonitor.models.SleepStateValue
+import com.babyMonitor.models.SleepStateModel
 import com.babyMonitor.utils.Utils
 
 class SleepStateAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -40,7 +40,7 @@ class SleepStateAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         return sleepStateRows[position].rowType.ordinal
     }
 
-    fun updateItems(listSleepStates: List<SleepStateValue>?) {
+    fun updateItems(listSleepStates: List<SleepStateModel>?) {
         listSleepStates?.let {
             sleepStateRows.clear()
 

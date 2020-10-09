@@ -7,15 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.babyMonitor.MainApplication
 import com.babyMonitor.R
-import com.babyMonitor.charts.ChartYAxisLeftRenderer
 import com.babyMonitor.charts.DateTimeValueFormatter
 import com.babyMonitor.charts.TemperatureValueFormatter
-import com.babyMonitor.models.TemperatureThresholds
-import com.babyMonitor.models.ThermometerValue
+import com.babyMonitor.models.TemperatureThresholdsModel
+import com.babyMonitor.models.ThermometerModel
 import com.babyMonitor.utils.Utils
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.charts.LineChart
@@ -59,7 +57,7 @@ class TemperatureMonitorFragment : Fragment() {
         Log.i(TAG, "onViewCreated - Starting observers")
 
         // Observe the temperature history list
-        viewModel.temperatureHistory.observe(viewLifecycleOwner, Observer {
+        viewModel.temperatureHistory.observe(viewLifecycleOwner, {
             populateTemperatureGraph(it)
         })
 
@@ -69,7 +67,7 @@ class TemperatureMonitorFragment : Fragment() {
         // Observe temperature thresholds
         MainApplication.instance.temperatureThresholds.observe(
             viewLifecycleOwner,
-            { thresholds: TemperatureThresholds ->
+            { thresholds: TemperatureThresholdsModel ->
                 run {
                     updateGraphBoundaryValues(thresholds)
                     updateLimitLines(thresholds)
@@ -90,18 +88,18 @@ class TemperatureMonitorFragment : Fragment() {
     }
 
     private fun setupChartView() {
-        // Enable touch gestures
-        temperatureChart.setTouchEnabled(true)
-        temperatureChart.dragDecelerationFrictionCoef = 0.9f
-
-        // Enable scaling and dragging
-        temperatureChart.isDragEnabled = true
-        temperatureChart.setScaleEnabled(true)
-        temperatureChart.setDrawGridBackground(false)
-        temperatureChart.isHighlightPerDragEnabled = true
-
         // General chart customizations
         temperatureChart.apply {
+            // Enable touch gestures
+            setTouchEnabled(true)
+            dragDecelerationFrictionCoef = 0.9f
+
+            // Enable scaling and dragging
+            isDragEnabled = true
+            setScaleEnabled(true)
+            setDrawGridBackground(false)
+            isHighlightPerDragEnabled = true
+
             // Hide the right axis values
             axisRight.isEnabled = false
 
@@ -116,13 +114,9 @@ class TemperatureMonitorFragment : Fragment() {
 
             // Animate the graph lines when entering
             animateX(1000, Easing.Linear)
-
-            // todo try and rotate the temperature using a custom render
-            rendererLeftYAxis =
-                ChartYAxisLeftRenderer(viewPortHandler, axisLeft, rendererLeftYAxis.transformer)
         }
 
-        // X Axis customizations -------
+        // X Axis customizations
         temperatureChart.xAxis.apply {
             position = XAxis.XAxisPosition.BOTTOM
             textColor = ContextCompat.getColor(requireContext(), R.color.colorChartAxisValues)
@@ -132,28 +126,28 @@ class TemperatureMonitorFragment : Fragment() {
             granularity = 30000f
         }
 
-        //  Y Axis (Left) customizations -------
+        //  Y Axis (Left) customizations
         temperatureChart.axisLeft.apply {
-            //setDrawLabels(true)
-            //zeroLineWidth = 20f
-
             textColor = ContextCompat.getColor(requireContext(), R.color.colorChartAxisValues)
             textSize = 14f
 
+            // Add custom formatter to only show one decimal place
             valueFormatter = TemperatureValueFormatter()
 
+            // Set the granularity to the decimal place
             granularity = 0.1f
 
-            //axisMaximum = MAX_TEMPERATURE_VALUE
-            //axisMinimum = MIN_TEMPERATURE_VALUE
-
             // Draw limit lines behind the main graph line or not
-            //setDrawLimitLinesBehindData(true)
+            setDrawLimitLinesBehindData(false)
         }
 
     }
 
-    private fun populateTemperatureGraph(temperatureHistory: List<ThermometerValue>) {
+    /**
+     * Populate the chart with a list of thermometer values that contain the temperature and the
+     * timestamp at which the reading was made
+     */
+    private fun populateTemperatureGraph(temperatureHistory: List<ThermometerModel>) {
         if (temperatureHistory.isEmpty()) return
 
         val values: ArrayList<Entry> = ArrayList()
@@ -169,6 +163,7 @@ class TemperatureMonitorFragment : Fragment() {
             Utils.FORMAT_DATE_AND_TIME
         )
 
+        // Go through each thermometer value and create a valid graph entry
         temperatureHistory.forEach { thermometerValue ->
             values.add(
                 Entry(
@@ -182,6 +177,8 @@ class TemperatureMonitorFragment : Fragment() {
                 )
             )
 
+            // Check which graph boundaries we will need to suppress depending if we have temperatures
+            // that surpass them or not
             if (thermometerValue.temp.toFloat() > maxTemperatureValueVisible) {
                 isMaxTemperatureValueSurpassed = true
             } else if (thermometerValue.temp.toFloat() < minTemperatureValueVisible) {
@@ -189,55 +186,35 @@ class TemperatureMonitorFragment : Fragment() {
             }
         }
 
+        // Update the boundaries values with the calculated boundaries
         temperatureChart.axisLeft.axisMaximum = maxTemperatureValueVisible.toFloat()
         temperatureChart.axisLeft.axisMinimum = minTemperatureValueVisible.toFloat()
 
+        // Suppress the boundaries that we don't want
         if (isMaxTemperatureValueSurpassed) temperatureChart.axisLeft.resetAxisMaximum()
         if (isMinTemperatureValueSurpassed) temperatureChart.axisLeft.resetAxisMinimum()
 
-        val set1: LineDataSet
-        /*if (temperatureChart.data != null &&
-            temperatureChart.data.dataSetCount > 0
-        ) {
-            set1 = temperatureChart.getData().getDataSetByIndex(0)
-            set1.values = values
-            temperatureChart.getData().notifyDataChanged()
-            temperatureChart.notifyDataSetChanged()
-        } else {*/
-        set1 = LineDataSet(values, "")
+        // Customize the data set with the graph values
+        val set1: LineDataSet = LineDataSet(values, "").apply {
+            setDrawValues(false)
+            setDrawIcons(false)
+            color = ContextCompat.getColor(requireContext(), R.color.colorChartLine)
+            lineWidth = 4f
 
-        set1.setDrawValues(false)
-        set1.setDrawIcons(false)
-        set1.color = ContextCompat.getColor(requireContext(), R.color.colorChartLine)
-        set1.lineWidth = 4f
+            disableDashedLine()
 
-        set1.disableDashedLine()
-        //set1.enableDashedLine(10f, 5f, 0f)
-        //set1.enableDashedHighlightLine(10f, 5f, 0f)
-        //set1.formLineWidth = 1f
-        //set1.formLineDashEffect = DashPathEffect(floatArrayOf(10f, 5f), 0f)
-        //set1.formSize = 15f
+            setDrawCircles(true)
 
-        set1.setDrawCircles(true)
-        //set1.setCircleColor(Color.DKGRAY)
-        //set1.circleRadius = 3f
-        //set1.setDrawCircleHole(false)
-        //set1.valueTextSize = 15f // points text size
+            mode = LineDataSet.Mode.HORIZONTAL_BEZIER
 
-        set1.mode = LineDataSet.Mode.HORIZONTAL_BEZIER
-
-        set1.setDrawFilled(false)
-        //if (Utils.getSDKInt() >= 18) {
-        //val drawable = ContextCompat.getDrawable(requireContext(), R.drawable.side_nav_bar)
-        //set1.fillDrawable = drawable
-        //} else {
-        //    set1.fillColor = Color.DKGRAY
-        //}
+            setDrawFilled(false)
+        }
 
         // Re-init value formatter with new base value
         temperatureChart.xAxis.valueFormatter =
             DateTimeValueFormatter(firstTemperatureReadingMillis)
 
+        // Add the data to the chart
         val dataSets: ArrayList<ILineDataSet> = ArrayList()
         dataSets.add(set1)
         val data = LineData(dataSets)
@@ -245,41 +222,51 @@ class TemperatureMonitorFragment : Fragment() {
 
         // Refresh the chart with the new data
         temperatureChart.invalidate()
-        //}
     }
 
-    private fun updateGraphBoundaryValues(thresholds: TemperatureThresholds) {
+    /**
+     * Update the values for the graph Y axis boundaries which determine the max and min temperatures
+     * visible when the current temperature is within them
+     */
+    private fun updateGraphBoundaryValues(thresholds: TemperatureThresholdsModel) {
         maxTemperatureValueVisible = thresholds.highTemp + BOUNDARY_DIFFERENCE_FROM_THRESHOLD
         minTemperatureValueVisible = thresholds.lowTemp - BOUNDARY_DIFFERENCE_FROM_THRESHOLD
     }
 
-    private fun updateLimitLines(thresholds: TemperatureThresholds) {
+    /**
+     * Update the graph limit lines according to the given temperature thresholds that define
+     * fever and cold
+     */
+    private fun updateLimitLines(thresholds: TemperatureThresholdsModel) {
         Log.i(TAG, "Updating limit lines with thresholds: $thresholds")
 
         temperatureChart.axisLeft.apply {
             val ll1 = LimitLine(
                 thresholds.highTemp.toFloat(),
                 getString(R.string.chart_limit_temperature_max)
-            )
-            ll1.lineColor = ContextCompat.getColor(requireContext(), R.color.colorChartMaxValue)
-            ll1.lineWidth = 4f
-            //ll1.enableDashedLine(5f, 10f, 0f)
-            ll1.labelPosition = LimitLine.LimitLabelPosition.RIGHT_BOTTOM
-            ll1.textSize = 17f
-            ll1.textColor = ContextCompat.getColor(requireContext(), R.color.colorChartMaxValue)
+            ).apply {
+                lineColor = ContextCompat.getColor(requireContext(), R.color.colorChartMaxValue)
+                lineWidth = 4f
+                labelPosition = LimitLine.LimitLabelPosition.RIGHT_BOTTOM
+                textSize = 17f
+                textColor = ContextCompat.getColor(requireContext(), R.color.colorChartMaxValue)
+            }
 
             val ll2 = LimitLine(
                 thresholds.lowTemp.toFloat(),
                 getString(R.string.chart_limit_temperature_min)
-            )
-            ll2.lineColor = ContextCompat.getColor(requireContext(), R.color.colorChartMinValue)
-            ll2.lineWidth = 4f
-            //ll2.enableDashedLine(5f, 10f, 0f)
-            ll2.labelPosition = LimitLine.LimitLabelPosition.RIGHT_TOP
-            ll2.textSize = 17f
-            ll2.textColor = ContextCompat.getColor(requireContext(), R.color.colorChartMinValue)
+            ).apply {
+                lineColor = ContextCompat.getColor(requireContext(), R.color.colorChartMinValue)
+                lineWidth = 4f
+                labelPosition = LimitLine.LimitLabelPosition.RIGHT_TOP
+                textSize = 17f
+                textColor = ContextCompat.getColor(requireContext(), R.color.colorChartMinValue)
+            }
 
+            // Remove the previous limit lines
             removeAllLimitLines()
+
+            // Add the new limit lines
             addLimitLine(ll1)
             addLimitLine(ll2)
 

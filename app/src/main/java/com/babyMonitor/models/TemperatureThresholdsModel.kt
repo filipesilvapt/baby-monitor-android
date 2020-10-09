@@ -3,7 +3,7 @@ package com.babyMonitor.models
 import com.babyMonitor.utils.Utils
 import com.google.firebase.database.PropertyName
 
-data class TemperatureThresholds(
+data class TemperatureThresholdsModel(
     @get:PropertyName("high_temp")
     @set:PropertyName("high_temp")
     var highTemp: Double = 0.0,

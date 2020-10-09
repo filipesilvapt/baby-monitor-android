@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.babyMonitor.database.RTDatabasePaths
-import com.babyMonitor.models.ThermometerValue
+import com.babyMonitor.models.ThermometerModel
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -15,10 +15,10 @@ import com.google.firebase.ktx.Firebase
 
 class TemperatureMonitorViewModel : ViewModel() {
 
-    private val _temperatureHistory = MutableLiveData<List<ThermometerValue>>().apply {
+    private val _temperatureHistory = MutableLiveData<List<ThermometerModel>>().apply {
         value = emptyList()
     }
-    val temperatureHistory: LiveData<List<ThermometerValue>> = _temperatureHistory
+    val temperatureHistory: LiveData<List<ThermometerModel>> = _temperatureHistory
 
     private lateinit var thermometerRef: DatabaseReference
 
@@ -36,11 +36,11 @@ class TemperatureMonitorViewModel : ViewModel() {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    val listOfTempValues: MutableList<ThermometerValue> = ArrayList()
+                    val listOfTempValues: MutableList<ThermometerModel> = ArrayList()
 
                     Log.d(TAG, "-------------------------------------------")
                     for (postSnapshot in dataSnapshot.children) {
-                        val value = postSnapshot.getValue(ThermometerValue::class.java)
+                        val value = postSnapshot.getValue(ThermometerModel::class.java)
                         Log.d(TAG, "Thermometer read is: $value")
 
                         value?.let {

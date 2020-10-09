@@ -8,9 +8,9 @@ import androidx.lifecycle.ViewModel
 import com.babyMonitor.MainApplication
 import com.babyMonitor.R
 import com.babyMonitor.database.RTDatabasePaths
-import com.babyMonitor.models.SleepStateValue
-import com.babyMonitor.models.TemperatureThresholds
-import com.babyMonitor.models.ThermometerValue
+import com.babyMonitor.models.SleepStateModel
+import com.babyMonitor.models.TemperatureThresholdsModel
+import com.babyMonitor.models.ThermometerModel
 import com.babyMonitor.utils.Constants
 import com.babyMonitor.utils.FireOnceEvent
 import com.babyMonitor.utils.SleepState
@@ -48,7 +48,7 @@ class BabyBoardViewModel : ViewModel() {
 
     private lateinit var babyTemperatureListener: ValueEventListener
 
-    private var currentThermometerReading: ThermometerValue? = null
+    private var currentThermometerReading: ThermometerModel? = null
 
     private val _textBabySleepStateResId = MutableLiveData<Int>().apply {
         value = null
@@ -134,7 +134,7 @@ class BabyBoardViewModel : ViewModel() {
 
                     // Get the first and only temperature item
                     currentThermometerReading =
-                        dataSnapshot.children.firstOrNull()?.getValue(ThermometerValue::class.java)
+                        dataSnapshot.children.firstOrNull()?.getValue(ThermometerModel::class.java)
 
                     currentThermometerReading?.let {
                         Log.d(TAG, "Current temperature read is: ${it.temp}")
@@ -197,7 +197,7 @@ class BabyBoardViewModel : ViewModel() {
      * Update the temperature resource identifier according to current temperature and the defined
      * temperature thresholds
      */
-    fun updateTemperatureResId(thresholds: TemperatureThresholds) {
+    fun updateTemperatureResId(thresholds: TemperatureThresholdsModel) {
         currentThermometerReading?.let {
             Log.i(TAG, "Updating temperature res id with received thresholds: $thresholds")
             _imageBabyTemperatureResId.value = when {
@@ -228,8 +228,8 @@ class BabyBoardViewModel : ViewModel() {
                     // whenever data at this location is updated.
 
                     // Get the first and only sleep state item
-                    val currentSleepState: SleepStateValue? =
-                        dataSnapshot.children.firstOrNull()?.getValue(SleepStateValue::class.java)
+                    val currentSleepState: SleepStateModel? =
+                        dataSnapshot.children.firstOrNull()?.getValue(SleepStateModel::class.java)
 
                     currentSleepState?.let {
                         Log.d(TAG, "Current sleep state is: $currentSleepState")

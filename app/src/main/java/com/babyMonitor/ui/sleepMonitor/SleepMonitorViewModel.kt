@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.babyMonitor.database.RTDatabasePaths
-import com.babyMonitor.models.SleepStateValue
+import com.babyMonitor.models.SleepStateModel
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -15,10 +15,10 @@ import com.google.firebase.ktx.Firebase
 
 class SleepMonitorViewModel : ViewModel() {
 
-    private val _sleepStatesHistory = MutableLiveData<List<SleepStateValue>>().apply {
+    private val _sleepStatesHistory = MutableLiveData<List<SleepStateModel>>().apply {
         value = emptyList()
     }
-    val sleepStatesHistory: LiveData<List<SleepStateValue>> = _sleepStatesHistory
+    val sleepStatesHistory: LiveData<List<SleepStateModel>> = _sleepStatesHistory
 
     private lateinit var sleepStatesRef: DatabaseReference
 
@@ -36,11 +36,11 @@ class SleepMonitorViewModel : ViewModel() {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    val listOfSleepStates: MutableList<SleepStateValue> = ArrayList()
+                    val listOfSleepStates: MutableList<SleepStateModel> = ArrayList()
 
                     Log.d(TAG, "-------------------------------------------")
                     for (postSnapshot in dataSnapshot.children) {
-                        val value = postSnapshot.getValue(SleepStateValue::class.java)
+                        val value = postSnapshot.getValue(SleepStateModel::class.java)
                         Log.d(TAG, "Sleep state is: $value")
 
                         value?.let {

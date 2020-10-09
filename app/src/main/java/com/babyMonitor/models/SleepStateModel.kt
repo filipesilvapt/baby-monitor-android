@@ -2,7 +2,7 @@ package com.babyMonitor.models
 
 import com.google.firebase.database.PropertyName
 
-class SleepStateValue(
+class SleepStateModel(
     @get:PropertyName("state")
     @set:PropertyName("state")
     var state: Int = 0,

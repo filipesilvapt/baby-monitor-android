@@ -10,7 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.babyMonitor.R
-import com.babyMonitor.models.SleepStateValue
+import com.babyMonitor.models.SleepStateModel
 
 class SleepMonitorFragment : Fragment() {
 
@@ -44,7 +44,7 @@ class SleepMonitorFragment : Fragment() {
 
         sleepMonitorViewModel.sleepStatesHistory.observe(
             viewLifecycleOwner,
-            { newSleepStates: List<SleepStateValue>? ->
+            { newSleepStates: List<SleepStateModel>? ->
                 (listSleepStates.adapter as SleepStateAdapter).updateItems(newSleepStates)
             })
 
