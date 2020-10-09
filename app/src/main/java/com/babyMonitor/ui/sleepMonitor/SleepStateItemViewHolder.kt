@@ -17,7 +17,7 @@ class SleepStateItemViewHolder(private val sleepStateItemView: View) :
         val hoursTextView = sleepStateItemView.findViewById<TextView>(R.id.text_hours)
 
         hoursTextView.text = Utils.convertMillisToDateFormat(
-            Utils.getDateInMilliSeconds(item.timestamp, Utils.FORMAT_DATE_AND_TIME),
+            Utils.convertDateToMillis(item.timestamp, Utils.FORMAT_DATE_AND_TIME),
             Utils.FORMAT_HOURS_MINUTES
         )
 

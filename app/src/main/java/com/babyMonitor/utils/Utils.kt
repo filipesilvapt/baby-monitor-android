@@ -20,13 +20,19 @@ object Utils {
     const val FORMAT_DATE_TYPE_HEADER = "EEEE - dd MMM yyyy"
     const val FORMAT_HOURS_MINUTES = "HH:mm"
 
+    /**
+     * Format a double value into a text value with only one decimal place
+     */
     fun getDoubleToStringWithOneDecimal(value: Double): String {
         val df = DecimalFormat("0.0")
         df.roundingMode = RoundingMode.HALF_EVEN
         return df.format(value)
     }
 
-    fun getDateInMilliSeconds(givenDateString: String, format: String): Long {
+    /**
+     * Convert a date and time in a given format to milliseconds
+     */
+    fun convertDateToMillis(givenDateString: String, format: String): Long {
         val sdf = SimpleDateFormat(format, Locale.getDefault())
         var timeInMilliseconds: Long = 1
         try {
@@ -51,6 +57,9 @@ object Utils {
         return timeInMilliseconds
     }
 
+    /**
+     * Convert a date and time in milliseconds to a given text format
+     */
     fun convertMillisToDateFormat(timeInMillis: Long, dateFormat: String): String {
         // Set a new calendar with the default timezone and the given time
         val tz = TimeZone.getDefault()
@@ -64,6 +73,16 @@ object Utils {
         return formatter.format(calendar.time)
     }
 
+    /**
+     * Get the current device date and time in milliseconds
+     */
+    fun getCurrentDateTimeInMillis(): Long {
+        return Calendar.getInstance().timeInMillis
+    }
+
+    /**
+     * Get a unique identifiers associated to the device
+     */
     @SuppressLint("HardwareIds")
     fun getAndroidDeviceId(context: Context): String {
         return android.provider.Settings.Secure.getString(
@@ -72,12 +91,19 @@ object Utils {
         )
     }
 
+    /**
+     * Get the URI of a resource placed in the raw folder based on the given id which corresponds to
+     * its name
+     */
     fun getRawUri(rawResourceId: Int): Uri? {
         return Uri.parse(
             ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + BuildConfig.APPLICATION_ID + "/" + rawResourceId
         )
     }
 
+    /**
+     * Get a bitmap from a drawable resource id
+     */
     fun getBitmapFromDrawable(context: Context, drawableId: Int): Bitmap {
         return BitmapFactory.decodeResource(context.resources, drawableId)
     }

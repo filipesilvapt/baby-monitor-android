@@ -11,6 +11,7 @@ import com.babyMonitor.database.RTDatabasePaths
 import com.babyMonitor.models.SleepStateValue
 import com.babyMonitor.models.TemperatureThresholds
 import com.babyMonitor.models.ThermometerValue
+import com.babyMonitor.utils.Constants
 import com.babyMonitor.utils.FireOnceEvent
 import com.babyMonitor.utils.SleepState
 import com.babyMonitor.utils.Utils
@@ -20,6 +21,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.*
 
 class BabyBoardViewModel : ViewModel() {
 
@@ -53,10 +55,17 @@ class BabyBoardViewModel : ViewModel() {
     }
     val textBabySleepStateResId: LiveData<Int> = _textBabySleepStateResId
 
+    private val _isBabyStatusAvailable = MutableLiveData<Boolean>().apply {
+        value = false
+    }
+    val isBabyStatusAvailable: LiveData<Boolean> = _isBabyStatusAvailable
+
     private val _imageBabySleepStateResId = MutableLiveData<Int>().apply {
         value = null
     }
     val imageBabySleepStateResId: LiveData<Int> = _imageBabySleepStateResId
+
+    private var dataAvailabilityWatcher: Job? = null
 
     private lateinit var babySleepStateRef: DatabaseReference
 
@@ -119,13 +128,19 @@ class BabyBoardViewModel : ViewModel() {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    for (postSnapshot in dataSnapshot.children) {
-                        currentThermometerReading =
-                            postSnapshot.getValue(ThermometerValue::class.java)
-                    }
+
+                    // Start the data availability watcher
+                    startDataAvailabilityWatcher()
+
+                    // Get the first and only temperature item
+                    currentThermometerReading =
+                        dataSnapshot.children.firstOrNull()?.getValue(ThermometerValue::class.java)
 
                     currentThermometerReading?.let {
                         Log.d(TAG, "Current temperature read is: ${it.temp}")
+
+                        // Set the baby status availability
+                        setBabyStatusAvailability(it.timestamp)
 
                         // Set the temperature text
                         _textBabyTemperature.value =
@@ -148,6 +163,40 @@ class BabyBoardViewModel : ViewModel() {
             })
     }
 
+    /**
+     * Sets the baby status availability according to the last received temperature timestamp.
+     * The difference in time should be less than
+     */
+    fun setBabyStatusAvailability(timestamp: String) {
+        // Calculate the difference in milliseconds between the current time and the received timestamp
+        val tempTimestampInMillis =
+            Utils.convertDateToMillis(timestamp, Utils.FORMAT_DATE_AND_TIME)
+
+        val currentDateTimeInMillis = Utils.getCurrentDateTimeInMillis()
+
+        val timeDifferenceInMillis = currentDateTimeInMillis - tempTimestampInMillis
+
+        Log.d(
+            TAG,
+            "currentDateTimeInMillis ($currentDateTimeInMillis) - tempTimestampInMillis " +
+                    "($tempTimestampInMillis) = $timeDifferenceInMillis || Timestamp = $timestamp"
+        )
+
+        // Check if the last value is recent
+        if (timeDifferenceInMillis <= Constants.BABY_STATUS_AVAILABILITY_MAX_DELAY) {
+            _isBabyStatusAvailable.value = true
+        } else {
+            // Data availability watcher can be stopped due no recent data
+            stopDataAvailabilityWatcher()
+
+            _isBabyStatusAvailable.value = false
+        }
+    }
+
+    /**
+     * Update the temperature resource identifier according to current temperature and the defined
+     * temperature thresholds
+     */
     fun updateTemperatureResId(thresholds: TemperatureThresholds) {
         currentThermometerReading?.let {
             Log.i(TAG, "Updating temperature res id with received thresholds: $thresholds")
@@ -161,6 +210,8 @@ class BabyBoardViewModel : ViewModel() {
 
     fun stopObservingFirebaseBabyTemperature() {
         babyTemperatureRef.removeEventListener(babyTemperatureListener)
+
+        stopDataAvailabilityWatcher()
     }
 
     fun observeFirebaseBabySleepState() {
@@ -175,11 +226,10 @@ class BabyBoardViewModel : ViewModel() {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // This method is called once with the initial value and again
                     // whenever data at this location is updated.
-                    var currentSleepState: SleepStateValue? = null
 
-                    for (postSnapshot in dataSnapshot.children) {
-                        currentSleepState = postSnapshot.getValue(SleepStateValue::class.java)
-                    }
+                    // Get the first and only sleep state item
+                    val currentSleepState: SleepStateValue? =
+                        dataSnapshot.children.firstOrNull()?.getValue(SleepStateValue::class.java)
 
                     currentSleepState?.let {
                         Log.d(TAG, "Current sleep state is: $currentSleepState")
@@ -221,6 +271,32 @@ class BabyBoardViewModel : ViewModel() {
 
     fun stopObservingFirebaseBabySleepState() {
         babySleepStateRef.removeEventListener(babySleepStateListener)
+    }
+
+    /**
+     * Starts a timer to change the availability of the baby status after a specific time without
+     * temperature updates
+     */
+    private fun startDataAvailabilityWatcher() {
+        // Stop the previous watcher in case one existed
+        stopDataAvailabilityWatcher()
+
+        dataAvailabilityWatcher = GlobalScope.launch {
+            delay(Constants.BABY_STATUS_AVAILABILITY_MAX_DELAY)
+            withContext(Dispatchers.Main) {
+                _isBabyStatusAvailable.value = false
+            }
+        }
+    }
+
+    /**
+     * Stops the watcher for cases like:
+     * - New temperature data received
+     * - Moved out of the current screen
+     */
+    private fun stopDataAvailabilityWatcher() {
+        dataAvailabilityWatcher?.cancel()
+        dataAvailabilityWatcher = null
     }
 
     companion object {

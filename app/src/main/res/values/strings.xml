@@ -35,4 +35,6 @@
     <string name="notification_message_high_temperature">(Fever) Your baby\'s temperature is %1$.1f ºC</string>
     <string name="notification_message_low_temperature">(Cold) Your baby\'s temperature is %1$.1f ºC</string>
     <string name="notification_message_sleep_disturbed">%1$s is having trouble sleeping</string>
+
+    <string name="baby_state_not_available">Baby state not available yet.\nMake sure the monitor is connected.</string>
 </resources>

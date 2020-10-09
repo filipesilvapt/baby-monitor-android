@@ -164,7 +164,7 @@ class TemperatureMonitorFragment : Fragment() {
         // Get the first reading as the reference value to lower every X axis value in order for
         // the library to be able to manage them.
         // REF: https://github.com/PhilJay/MPAndroidChart/issues/789#issuecomment-241507904
-        val firstTemperatureReadingMillis: Long = Utils.getDateInMilliSeconds(
+        val firstTemperatureReadingMillis: Long = Utils.convertDateToMillis(
             temperatureHistory[0].timestamp,
             Utils.FORMAT_DATE_AND_TIME
         )
@@ -173,7 +173,7 @@ class TemperatureMonitorFragment : Fragment() {
             values.add(
                 Entry(
                     // date and time in milliseconds minus the reference value
-                    (Utils.getDateInMilliSeconds(
+                    (Utils.convertDateToMillis(
                         thermometerValue.timestamp,
                         Utils.FORMAT_DATE_AND_TIME
                     ) - firstTemperatureReadingMillis).toFloat(),

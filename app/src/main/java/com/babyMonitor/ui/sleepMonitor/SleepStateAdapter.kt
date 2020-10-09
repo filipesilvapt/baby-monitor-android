@@ -54,7 +54,7 @@ class SleepStateAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             // end at the top of the list
             for (sleepState in listSleepStates.asReversed()) {
                 timestampMillis =
-                    Utils.getDateInMilliSeconds(sleepState.timestamp, Utils.FORMAT_DATE_AND_TIME)
+                    Utils.convertDateToMillis(sleepState.timestamp, Utils.FORMAT_DATE_AND_TIME)
 
                 currentDate = Utils.convertMillisToDateFormat(
                     timestampMillis,
