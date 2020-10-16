@@ -65,7 +65,7 @@ class TemperatureMonitorFragment : Fragment() {
         viewModel.observeFirebaseBabyTemperatureHistory()
 
         // Observe temperature thresholds
-        MainApplication.instance.temperatureThresholds.observe(
+        MainApplication.instance.temperatureThresholdsRepository.temperatureThresholds.observe(
             viewLifecycleOwner,
             { thresholds: TemperatureThresholdsModel ->
                 run {
@@ -80,7 +80,9 @@ class TemperatureMonitorFragment : Fragment() {
         super.onDestroyView()
         Log.i(TAG, "onDestroyView - Stopping observers")
 
-        MainApplication.instance.temperatureThresholds.removeObservers(viewLifecycleOwner)
+        MainApplication.instance.temperatureThresholdsRepository.temperatureThresholds.removeObservers(
+            viewLifecycleOwner
+        )
 
         viewModel.temperatureHistory.removeObservers(viewLifecycleOwner)
 

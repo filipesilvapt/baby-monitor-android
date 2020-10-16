@@ -147,7 +147,8 @@ class BabyBoardViewModel : ViewModel() {
                             "${Utils.getDoubleToStringWithOneDecimal(it.temp)} ºC"
 
                         // Set the temperature image according to thresholds
-                        val thresholds = MainApplication.instance.temperatureThresholds.value
+                        val thresholds =
+                            MainApplication.instance.temperatureThresholdsRepository.temperatureThresholds.value
                         thresholds?.let(this@BabyBoardViewModel::updateTemperatureResId)
                     }
                 }
