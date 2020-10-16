@@ -12,11 +12,9 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.babyMonitor.MainActivity
+import com.babyMonitor.MainApplication
 import com.babyMonitor.R
-import com.babyMonitor.database.RTDatabasePaths
 import com.babyMonitor.utils.Utils
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
@@ -27,7 +25,7 @@ class FirebaseNotificationService : FirebaseMessagingService() {
         super.onNewToken(newToken)
         Log.i(TAG, "New token: $newToken")
 
-        sendRegistrationToServer(newToken)
+        MainApplication.instance.clientTokenRepository.registerNewClientToken(newToken)
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -150,24 +148,6 @@ class FirebaseNotificationService : FirebaseMessagingService() {
         }
 
         notificationManager.notify(notificationId, notificationBuilder.build())
-    }
-
-    /**
-     * Register the Firebase device token in the RT Database associated with a unique device id
-     */
-    private fun sendRegistrationToServer(newToken: String) {
-        val database = Firebase.database
-        val clientTokensRef = database.getReference(RTDatabasePaths.PATH_CLIENT_TOKENS)
-        val uniqueId = Utils.getAndroidDeviceId(this)
-        val map = HashMap<String, Any>()
-        map[uniqueId] = newToken
-        clientTokensRef.updateChildren(map)
-            .addOnSuccessListener {
-                Log.i(TAG, "Firebase token was successfully saved in RT Database with id $uniqueId")
-            }
-            .addOnFailureListener {
-                Log.w(TAG, "Firebase token failed to be saved in RT Database")
-            }
     }
 
     companion object {
