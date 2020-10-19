@@ -8,12 +8,12 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.babyMonitor.MainApplication
 import com.babyMonitor.R
 import com.babyMonitor.charts.DateTimeValueFormatter
 import com.babyMonitor.charts.TemperatureValueFormatter
 import com.babyMonitor.models.TemperatureThresholdsModel
 import com.babyMonitor.models.ThermometerModel
+import com.babyMonitor.repositories.TemperatureThresholdsRepository
 import com.babyMonitor.utils.Utils
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.charts.LineChart
@@ -23,8 +23,14 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class TemperatureMonitorFragment : Fragment() {
+
+    @Inject
+    lateinit var temperatureThresholdsRepository: TemperatureThresholdsRepository
 
     private lateinit var viewModel: TemperatureMonitorViewModel
 
@@ -65,7 +71,7 @@ class TemperatureMonitorFragment : Fragment() {
         viewModel.observeFirebaseBabyTemperatureHistory()
 
         // Observe temperature thresholds
-        MainApplication.instance.temperatureThresholdsRepository.temperatureThresholds.observe(
+        temperatureThresholdsRepository.temperatureThresholds.observe(
             viewLifecycleOwner,
             { thresholds: TemperatureThresholdsModel ->
                 run {
@@ -80,7 +86,7 @@ class TemperatureMonitorFragment : Fragment() {
         super.onDestroyView()
         Log.i(TAG, "onDestroyView - Stopping observers")
 
-        MainApplication.instance.temperatureThresholdsRepository.temperatureThresholds.removeObservers(
+        temperatureThresholdsRepository.temperatureThresholds.removeObservers(
             viewLifecycleOwner
         )
 

@@ -12,20 +12,25 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.babyMonitor.MainActivity
-import com.babyMonitor.MainApplication
 import com.babyMonitor.R
+import com.babyMonitor.repositories.ClientTokenRepository
 import com.babyMonitor.utils.Utils
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class FirebaseNotificationService : FirebaseMessagingService() {
+
+    @Inject
+    lateinit var clientTokenRepository: ClientTokenRepository
 
     override fun onNewToken(newToken: String) {
         super.onNewToken(newToken)
         Log.i(TAG, "New token: $newToken")
 
-        MainApplication.instance.clientTokenRepository.registerNewClientToken(newToken)
+        clientTokenRepository.registerNewClientToken(newToken)
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {

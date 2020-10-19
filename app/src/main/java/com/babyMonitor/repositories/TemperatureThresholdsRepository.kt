@@ -7,8 +7,13 @@ import com.babyMonitor.database.RTDatabasePaths
 import com.babyMonitor.models.TemperatureThresholdsModel
 import com.babyMonitor.utils.Constants
 import com.google.firebase.database.*
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class TemperatureThresholdsRepository(private val database: FirebaseDatabase) {
+@Singleton
+class TemperatureThresholdsRepository @Inject constructor(
+    private val database: FirebaseDatabase
+) {
 
     private lateinit var temperatureThresholdsRef: DatabaseReference
 

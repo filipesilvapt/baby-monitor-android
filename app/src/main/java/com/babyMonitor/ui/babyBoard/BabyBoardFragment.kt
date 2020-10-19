@@ -8,12 +8,18 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
-import com.babyMonitor.MainApplication
 import com.babyMonitor.databinding.FragmentBabyBoardBinding
 import com.babyMonitor.models.TemperatureThresholdsModel
+import com.babyMonitor.repositories.TemperatureThresholdsRepository
 import com.babyMonitor.utils.EventObserver
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class BabyBoardFragment : Fragment() {
+
+    @Inject
+    lateinit var temperatureThresholdsRepository: TemperatureThresholdsRepository
 
     private lateinit var viewModel: BabyBoardViewModel
 
@@ -77,7 +83,7 @@ class BabyBoardFragment : Fragment() {
         )
 
         // Observe temperature thresholds
-        MainApplication.instance.temperatureThresholdsRepository.temperatureThresholds.observe(
+        temperatureThresholdsRepository.temperatureThresholds.observe(
             viewLifecycleOwner,
             { thresholds: TemperatureThresholdsModel -> viewModel.updateTemperatureResId(thresholds) }
         )
@@ -96,7 +102,7 @@ class BabyBoardFragment : Fragment() {
         super.onDestroyView()
         Log.i(TAG, "onDestroyView - Stopping observers")
 
-        MainApplication.instance.temperatureThresholdsRepository.temperatureThresholds.removeObservers(
+        temperatureThresholdsRepository.temperatureThresholds.removeObservers(
             viewLifecycleOwner
         )
 

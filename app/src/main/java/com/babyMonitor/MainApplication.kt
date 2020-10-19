@@ -5,27 +5,24 @@ import android.util.Log
 import com.babyMonitor.repositories.ClientTokenRepository
 import com.babyMonitor.repositories.TemperatureThresholdsRepository
 import com.google.android.gms.tasks.OnCompleteListener
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
+@HiltAndroidApp
 class MainApplication : Application() {
 
+    @Inject
     lateinit var clientTokenRepository: ClientTokenRepository
-        private set
 
+    @Inject
     lateinit var temperatureThresholdsRepository: TemperatureThresholdsRepository
-        private set
 
     override fun onCreate() {
         super.onCreate()
         Log.i(TAG, "onCreate")
 
         instance = this
-
-        clientTokenRepository = ClientTokenRepository(instance, Firebase.database)
-
-        temperatureThresholdsRepository = TemperatureThresholdsRepository(Firebase.database)
 
         registerDeviceInFirebaseDatabase()
 

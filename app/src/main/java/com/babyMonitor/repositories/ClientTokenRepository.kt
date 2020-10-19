@@ -5,8 +5,11 @@ import android.util.Log
 import com.babyMonitor.database.RTDatabasePaths
 import com.babyMonitor.utils.Utils
 import com.google.firebase.database.FirebaseDatabase
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ClientTokenRepository(
+@Singleton
+class ClientTokenRepository @Inject constructor(
     private val applicationContext: Context,
     private val database: FirebaseDatabase
 ) {
