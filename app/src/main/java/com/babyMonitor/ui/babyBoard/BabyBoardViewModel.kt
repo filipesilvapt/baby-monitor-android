@@ -2,15 +2,17 @@ package com.babyMonitor.ui.babyBoard
 
 import android.util.Log
 import android.view.View
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.babyMonitor.MainApplication
+import androidx.lifecycle.viewModelScope
 import com.babyMonitor.R
 import com.babyMonitor.database.RTDatabasePaths
-import com.babyMonitor.models.SleepStateModel
 import com.babyMonitor.models.TemperatureThresholdsModel
 import com.babyMonitor.models.ThermometerModel
+import com.babyMonitor.repositories.SleepStateRepository
+import com.babyMonitor.repositories.TemperatureThresholdsRepository
 import com.babyMonitor.utils.Constants
 import com.babyMonitor.utils.FireOnceEvent
 import com.babyMonitor.utils.SleepState
@@ -23,7 +25,10 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.*
 
-class BabyBoardViewModel : ViewModel() {
+class BabyBoardViewModel @ViewModelInject constructor(
+    private val temperatureThresholdsRepository: TemperatureThresholdsRepository,
+    private val sleepStateRepository: SleepStateRepository
+) : ViewModel() {
 
     private val _textBabyName = MutableLiveData<String>().apply {
         value = ""
@@ -66,10 +71,6 @@ class BabyBoardViewModel : ViewModel() {
     val imageBabySleepStateResId: LiveData<Int> = _imageBabySleepStateResId
 
     private var dataAvailabilityWatcher: Job? = null
-
-    private lateinit var babySleepStateRef: DatabaseReference
-
-    private lateinit var babySleepStateListener: ValueEventListener
 
     private val _navigateToTemperatureMonitor = MutableLiveData<FireOnceEvent<Boolean>>()
     val navigateToTemperatureMonitor: LiveData<FireOnceEvent<Boolean>> =
@@ -148,7 +149,7 @@ class BabyBoardViewModel : ViewModel() {
 
                         // Set the temperature image according to thresholds
                         val thresholds =
-                            MainApplication.instance.temperatureThresholdsRepository.temperatureThresholds.value
+                            temperatureThresholdsRepository.temperatureThresholds.value
                         thresholds?.let(this@BabyBoardViewModel::updateTemperatureResId)
                     }
                 }
@@ -195,7 +196,7 @@ class BabyBoardViewModel : ViewModel() {
     }
 
     /**
-     * Update the temperature resource identifier according to current temperature and the defined
+     * Update the temperature resource identifier according to the current temperature and the defined
      * temperature thresholds
      */
     fun updateTemperatureResId(thresholds: TemperatureThresholdsModel) {
@@ -215,63 +216,43 @@ class BabyBoardViewModel : ViewModel() {
         stopDataAvailabilityWatcher()
     }
 
-    fun observeFirebaseBabySleepState() {
-        val database = Firebase.database
-        babySleepStateRef = database.getReference(RTDatabasePaths.PATH_SLEEP_STATES)
-
-        val rowsToQuery = 1
-
-        // Read from the database
-        babySleepStateListener = babySleepStateRef.limitToLast(rowsToQuery)
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    // This method is called once with the initial value and again
-                    // whenever data at this location is updated.
-
-                    // Get the first and only sleep state item
-                    val currentSleepState: SleepStateModel? =
-                        dataSnapshot.children.firstOrNull()?.getValue(SleepStateModel::class.java)
-
-                    currentSleepState?.let {
-                        Log.d(TAG, "Current sleep state is: $currentSleepState")
-
-                        when (currentSleepState.state) {
-                            // Baby is agitated
-                            SleepState.AGITATED.value -> {
-                                _textBabySleepStateResId.value = R.string.emotion_state_agitated
-                                _imageBabySleepStateResId.value =
-                                    R.drawable.ic_emotion_state_agitated
-                            }
-
-                            // Baby is disturbed
-                            SleepState.DISTURBED.value -> {
-                                _textBabySleepStateResId.value = R.string.emotion_state_disturbed
-                                _imageBabySleepStateResId.value =
-                                    R.drawable.ic_emotion_state_disturbed
-                            }
-
-                            // Value 0 or default is baby sleeping
-                            else -> {
-                                _textBabySleepStateResId.value = R.string.emotion_state_sleep
-                                _imageBabySleepStateResId.value = R.drawable.ic_emotion_state_sleep
-                            }
-                        }
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    // Failed to read value
-                    Log.w(
-                        TAG,
-                        "Failed to read firebase baby sleep state value.",
-                        error.toException()
-                    )
-                }
-            })
+    fun getLastSleepStateResult(): LiveData<Int> {
+        return sleepStateRepository.lastSleepStateResult
     }
 
-    fun stopObservingFirebaseBabySleepState() {
-        babySleepStateRef.removeEventListener(babySleepStateListener)
+    fun startObservingLastSleepState() {
+        sleepStateRepository.observeFirebaseLastSleepState()
+    }
+
+    fun stopObservingLastSleepState() {
+        sleepStateRepository.stopObservingFirebaseLastSleepState()
+    }
+
+    /**
+     * Update the sleep state resources according to the current sleep state
+     */
+    fun updateSleepStateResources(sleepState: Int) {
+        when (sleepState) {
+            // Baby is agitated
+            SleepState.AGITATED.value -> {
+                _textBabySleepStateResId.value = R.string.emotion_state_agitated
+                _imageBabySleepStateResId.value =
+                    R.drawable.ic_emotion_state_agitated
+            }
+
+            // Baby is disturbed
+            SleepState.DISTURBED.value -> {
+                _textBabySleepStateResId.value = R.string.emotion_state_disturbed
+                _imageBabySleepStateResId.value =
+                    R.drawable.ic_emotion_state_disturbed
+            }
+
+            // Value 0 or default is baby sleeping
+            else -> {
+                _textBabySleepStateResId.value = R.string.emotion_state_sleep
+                _imageBabySleepStateResId.value = R.drawable.ic_emotion_state_sleep
+            }
+        }
     }
 
     /**
@@ -282,7 +263,7 @@ class BabyBoardViewModel : ViewModel() {
         // Stop the previous watcher in case one existed
         stopDataAvailabilityWatcher()
 
-        dataAvailabilityWatcher = GlobalScope.launch {
+        dataAvailabilityWatcher = viewModelScope.launch {
             delay(Constants.BABY_STATUS_AVAILABILITY_MAX_DELAY)
             withContext(Dispatchers.Main) {
                 _isBabyStatusAvailable.value = false

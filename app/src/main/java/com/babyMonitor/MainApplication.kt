@@ -22,8 +22,6 @@ class MainApplication : Application() {
         super.onCreate()
         Log.i(TAG, "onCreate")
 
-        instance = this
-
         registerDeviceInFirebaseDatabase()
 
         temperatureThresholdsRepository.observeFirebaseTemperatureThresholds()
@@ -51,8 +49,5 @@ class MainApplication : Application() {
 
     companion object {
         private val TAG: String = MainApplication::class.java.simpleName
-
-        lateinit var instance: MainApplication
-            private set
     }
 }

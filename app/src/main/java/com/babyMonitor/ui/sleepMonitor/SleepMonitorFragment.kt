@@ -6,15 +6,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.babyMonitor.R
 import com.babyMonitor.models.SleepStateModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SleepMonitorFragment : Fragment() {
 
-    private lateinit var sleepMonitorViewModel: SleepMonitorViewModel
+    private val sleepMonitorViewModel: SleepMonitorViewModel by viewModels()
 
     private lateinit var listSleepStates: RecyclerView
 
@@ -25,8 +27,6 @@ class SleepMonitorFragment : Fragment() {
     ): View? {
         Log.i(TAG, "onCreateView")
 
-        sleepMonitorViewModel =
-            ViewModelProvider(this).get(SleepMonitorViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_sleep_monitor, container, false)
 
         listSleepStates = root.findViewById(R.id.list_sleep_states)
@@ -48,14 +48,14 @@ class SleepMonitorFragment : Fragment() {
                 (listSleepStates.adapter as SleepStateAdapter).updateItems(newSleepStates)
             })
 
-        sleepMonitorViewModel.observeFirebaseSleepStatesHistory()
+        sleepMonitorViewModel.observeSleepStateHistory()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         Log.i(TAG, "onDestroyView - Stopping observers")
         sleepMonitorViewModel.sleepStatesHistory.removeObservers(viewLifecycleOwner)
-        sleepMonitorViewModel.stopObservingFirebaseSleepStatesHistory()
+        sleepMonitorViewModel.stopObservingSleepStateHistory()
     }
 
     companion object {

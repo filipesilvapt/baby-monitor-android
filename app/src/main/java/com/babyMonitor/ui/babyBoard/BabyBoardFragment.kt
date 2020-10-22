@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.NavHostFragment
 import com.babyMonitor.databinding.FragmentBabyBoardBinding
 import com.babyMonitor.models.TemperatureThresholdsModel
@@ -21,7 +21,7 @@ class BabyBoardFragment : Fragment() {
     @Inject
     lateinit var temperatureThresholdsRepository: TemperatureThresholdsRepository
 
-    private lateinit var viewModel: BabyBoardViewModel
+    private val viewModel: BabyBoardViewModel by viewModels()
 
     private val openTemperatureMonitorDirection =
         BabyBoardFragmentDirections.actionOpenTemperatureMonitor()
@@ -36,7 +36,6 @@ class BabyBoardFragment : Fragment() {
     ): View? {
         Log.i(TAG, "onCreateView")
 
-        viewModel = ViewModelProvider(this).get(BabyBoardViewModel::class.java)
         val binding = FragmentBabyBoardBinding.inflate(layoutInflater, container, false)
 
         binding.viewModel = viewModel
@@ -95,7 +94,11 @@ class BabyBoardFragment : Fragment() {
         viewModel.observeFirebaseBabyTemperature()
 
         // Observe firebase sleep state
-        viewModel.observeFirebaseBabySleepState()
+        viewModel.getLastSleepStateResult().observe(
+            viewLifecycleOwner,
+            { sleepState: Int -> viewModel.updateSleepStateResources(sleepState) }
+        )
+        viewModel.startObservingLastSleepState()
     }
 
     override fun onDestroyView() {
@@ -110,7 +113,11 @@ class BabyBoardFragment : Fragment() {
 
         viewModel.stopObservingFirebaseBabyTemperature()
 
-        viewModel.stopObservingFirebaseBabySleepState()
+        viewModel.getLastSleepStateResult().removeObservers(
+            viewLifecycleOwner
+        )
+
+        viewModel.stopObservingLastSleepState()
     }
 
     companion object {
