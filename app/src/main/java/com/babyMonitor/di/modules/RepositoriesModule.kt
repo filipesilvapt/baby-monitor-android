@@ -4,6 +4,7 @@ import android.content.Context
 import com.babyMonitor.database.RTDatabasePaths
 import com.babyMonitor.repositories.ClientTokenRepository
 import com.babyMonitor.repositories.SleepStateRepository
+import com.babyMonitor.repositories.TemperatureRepository
 import com.babyMonitor.repositories.TemperatureThresholdsRepository
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.database
@@ -43,6 +44,13 @@ object RepositoriesModule {
         database: FirebaseDatabase
     ): SleepStateRepository {
         return SleepStateRepository(database.getReference(RTDatabasePaths.PATH_SLEEP_STATES))
+    }
+
+    @Provides
+    fun provideTemperatureRepository(
+        database: FirebaseDatabase
+    ): TemperatureRepository {
+        return TemperatureRepository(database.getReference(RTDatabasePaths.PATH_THERMOMETER_READINGS))
     }
 
 }

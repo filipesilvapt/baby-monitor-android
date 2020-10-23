@@ -12,6 +12,7 @@ import com.babyMonitor.database.RTDatabasePaths
 import com.babyMonitor.models.TemperatureThresholdsModel
 import com.babyMonitor.models.ThermometerModel
 import com.babyMonitor.repositories.SleepStateRepository
+import com.babyMonitor.repositories.TemperatureRepository
 import com.babyMonitor.repositories.TemperatureThresholdsRepository
 import com.babyMonitor.utils.Constants
 import com.babyMonitor.utils.FireOnceEvent
@@ -27,6 +28,7 @@ import kotlinx.coroutines.*
 
 class BabyBoardViewModel @ViewModelInject constructor(
     private val temperatureThresholdsRepository: TemperatureThresholdsRepository,
+    private val temperatureRepository: TemperatureRepository,
     private val sleepStateRepository: SleepStateRepository
 ) : ViewModel() {
 
@@ -48,12 +50,6 @@ class BabyBoardViewModel @ViewModelInject constructor(
         value = null
     }
     val imageBabyTemperatureResId: LiveData<Int> = _imageBabyTemperatureResId
-
-    private lateinit var babyTemperatureRef: DatabaseReference
-
-    private lateinit var babyTemperatureListener: ValueEventListener
-
-    private var currentThermometerReading: ThermometerModel? = null
 
     private val _textBabySleepStateResId = MutableLiveData<Int>().apply {
         value = null
@@ -117,90 +113,24 @@ class BabyBoardViewModel @ViewModelInject constructor(
         babyNameRef.removeEventListener(babyNameListener)
     }
 
-    fun observeFirebaseBabyTemperature() {
-        val database = Firebase.database
-        babyTemperatureRef = database.getReference(RTDatabasePaths.PATH_THERMOMETER_READINGS)
+    fun getLastTemperatureReading(): LiveData<ThermometerModel> {
+        return temperatureRepository.lastTemperatureReading
+    }
 
-        val rowsToQuery = 1
+    fun startObservingLastTemperatureReading() {
+        temperatureRepository.observeFirebaseLastTemperatureReading()
+    }
 
-        // Read from the database
-        babyTemperatureListener = babyTemperatureRef.limitToLast(rowsToQuery)
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    // This method is called once with the initial value and again
-                    // whenever data at this location is updated.
-
-                    // Start the data availability watcher
-                    startDataAvailabilityWatcher()
-
-                    // Get the first and only temperature item
-                    currentThermometerReading =
-                        dataSnapshot.children.firstOrNull()?.getValue(ThermometerModel::class.java)
-
-                    currentThermometerReading?.let {
-                        Log.d(TAG, "Current temperature read is: ${it.temp}")
-
-                        // Set the baby status availability
-                        setBabyStatusAvailability(it.timestamp)
-
-                        // Set the temperature text
-                        _textBabyTemperature.value =
-                            "${Utils.getDoubleToStringWithOneDecimal(it.temp)} ºC"
-
-                        // Set the temperature image according to thresholds
-                        val thresholds =
-                            temperatureThresholdsRepository.temperatureThresholds.value
-                        thresholds?.let(this@BabyBoardViewModel::updateTemperatureResId)
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    // Failed to read value
-                    Log.w(
-                        TAG,
-                        "Failed to read firebase baby temperature value.",
-                        error.toException()
-                    )
-                }
-            })
+    fun stopObservingLastTemperatureReading() {
+        temperatureRepository.stopObservingFirebaseLastTemperatureReading()
     }
 
     /**
-     * Sets the baby status availability according to the last received temperature timestamp.
-     * The difference in time should be less than
+     * Update the temperature image resource identifier according to the current temperature and
+     * the defined temperature thresholds
      */
-    fun setBabyStatusAvailability(timestamp: String) {
-        // Calculate the difference in milliseconds between the current time and the received timestamp
-        val tempTimestampInMillis =
-            Utils.convertDateToMillis(timestamp, Utils.FORMAT_DATE_AND_TIME)
-
-        val currentDateTimeInMillis = Utils.getCurrentDateTimeInMillis()
-
-        val timeDifferenceInMillis = currentDateTimeInMillis - tempTimestampInMillis
-
-        Log.d(
-            TAG,
-            "currentDateTimeInMillis ($currentDateTimeInMillis) - tempTimestampInMillis " +
-                    "($tempTimestampInMillis) = $timeDifferenceInMillis || Timestamp = $timestamp"
-        )
-
-        // Check if the last value is recent
-        if (timeDifferenceInMillis <= Constants.BABY_STATUS_AVAILABILITY_MAX_DELAY) {
-            _isBabyStatusAvailable.value = true
-        } else {
-            // Data availability watcher can be stopped due no recent data
-            stopDataAvailabilityWatcher()
-
-            _isBabyStatusAvailable.value = false
-        }
-    }
-
-    /**
-     * Update the temperature resource identifier according to the current temperature and the defined
-     * temperature thresholds
-     */
-    fun updateTemperatureResId(thresholds: TemperatureThresholdsModel) {
-        currentThermometerReading?.let {
+    fun updateTemperatureImageResId(thresholds: TemperatureThresholdsModel) {
+        temperatureRepository.lastTemperatureReading.value?.let {
             Log.i(TAG, "Updating temperature res id with received thresholds: $thresholds")
             _imageBabyTemperatureResId.value = when {
                 it.temp >= thresholds.highTemp -> R.drawable.ic_temperature_high
@@ -210,10 +140,16 @@ class BabyBoardViewModel @ViewModelInject constructor(
         }
     }
 
-    fun stopObservingFirebaseBabyTemperature() {
-        babyTemperatureRef.removeEventListener(babyTemperatureListener)
+    /**
+     * Update the temperature resources according to the current reading
+     */
+    fun updateTemperatureResources(temperatureReading: ThermometerModel) {
+        // Set the temperature text
+        _textBabyTemperature.value = Utils.getDoubleToStringWithOneDecimal(temperatureReading.temp)
 
-        stopDataAvailabilityWatcher()
+        // Set the temperature image according to thresholds
+        val thresholds = temperatureThresholdsRepository.temperatureThresholds.value
+        thresholds?.let(this@BabyBoardViewModel::updateTemperatureImageResId)
     }
 
     fun getLastSleepStateResult(): LiveData<Int> {
@@ -259,7 +195,7 @@ class BabyBoardViewModel @ViewModelInject constructor(
      * Starts a timer to change the availability of the baby status after a specific time without
      * temperature updates
      */
-    private fun startDataAvailabilityWatcher() {
+    fun startDataAvailabilityWatcher() {
         // Stop the previous watcher in case one existed
         stopDataAvailabilityWatcher()
 
@@ -276,9 +212,51 @@ class BabyBoardViewModel @ViewModelInject constructor(
      * - New temperature data received
      * - Moved out of the current screen
      */
-    private fun stopDataAvailabilityWatcher() {
+    fun stopDataAvailabilityWatcher() {
         dataAvailabilityWatcher?.cancel()
         dataAvailabilityWatcher = null
+    }
+
+    /**
+     * Sets the baby status availability according to the last received temperature timestamp.
+     * The difference in time should be less than a predefined constant.
+     */
+    fun setBabyStatusAvailability(timestamp: String?) {
+        if (timestamp.isNullOrEmpty()) {
+            setBabyStatusNotAvailable()
+            return
+        }
+
+        // Calculate the difference in milliseconds between the current time and the received timestamp
+        val tempTimestampInMillis =
+            Utils.convertDateToMillis(timestamp, Utils.FORMAT_DATE_AND_TIME)
+
+        val currentDateTimeInMillis = Utils.getCurrentDateTimeInMillis()
+
+        val timeDifferenceInMillis = currentDateTimeInMillis - tempTimestampInMillis
+
+        Log.d(
+            TAG,
+            "currentDateTimeInMillis ($currentDateTimeInMillis) - tempTimestampInMillis " +
+                    "($tempTimestampInMillis) = $timeDifferenceInMillis || Timestamp = $timestamp"
+        )
+
+        // Check if the last value is recent
+        if (timeDifferenceInMillis <= Constants.BABY_STATUS_AVAILABILITY_MAX_DELAY) {
+            _isBabyStatusAvailable.value = true
+        } else {
+            setBabyStatusNotAvailable()
+        }
+    }
+
+    /**
+     * Sets the baby status as not available
+     */
+    private fun setBabyStatusNotAvailable() {
+        // Data availability watcher can be stopped due no recent data
+        stopDataAvailabilityWatcher()
+
+        _isBabyStatusAvailable.value = false
     }
 
     companion object {

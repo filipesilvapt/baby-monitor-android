@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.NavHostFragment
 import com.babyMonitor.databinding.FragmentBabyBoardBinding
 import com.babyMonitor.models.TemperatureThresholdsModel
+import com.babyMonitor.models.ThermometerModel
 import com.babyMonitor.repositories.TemperatureThresholdsRepository
 import com.babyMonitor.utils.EventObserver
 import dagger.hilt.android.AndroidEntryPoint
@@ -84,14 +85,28 @@ class BabyBoardFragment : Fragment() {
         // Observe temperature thresholds
         temperatureThresholdsRepository.temperatureThresholds.observe(
             viewLifecycleOwner,
-            { thresholds: TemperatureThresholdsModel -> viewModel.updateTemperatureResId(thresholds) }
+            { thresholds: TemperatureThresholdsModel ->
+                viewModel.updateTemperatureImageResId(
+                    thresholds
+                )
+            }
         )
 
         // Observe firebase baby name
         viewModel.observeFirebaseBabyName()
 
         // Observe firebase temperature
-        viewModel.observeFirebaseBabyTemperature()
+        viewModel.getLastTemperatureReading().observe(
+            viewLifecycleOwner,
+            { temperatureReading: ThermometerModel? ->
+                viewModel.run {
+                    startDataAvailabilityWatcher()
+                    setBabyStatusAvailability(temperatureReading?.timestamp)
+                    temperatureReading?.let { updateTemperatureResources(it) }
+                }
+            }
+        )
+        viewModel.startObservingLastTemperatureReading()
 
         // Observe firebase sleep state
         viewModel.getLastSleepStateResult().observe(
@@ -111,13 +126,22 @@ class BabyBoardFragment : Fragment() {
 
         viewModel.stopObservingFirebaseBabyName()
 
-        viewModel.stopObservingFirebaseBabyTemperature()
+        // Stop observing firebase temperature
+        viewModel.run {
+            stopDataAvailabilityWatcher()
+            getLastTemperatureReading().removeObservers(
+                viewLifecycleOwner
+            )
+            stopObservingLastTemperatureReading()
+        }
 
-        viewModel.getLastSleepStateResult().removeObservers(
-            viewLifecycleOwner
-        )
-
-        viewModel.stopObservingLastSleepState()
+        // Stop observing firebase sleep state
+        viewModel.run {
+            getLastSleepStateResult().removeObservers(
+                viewLifecycleOwner
+            )
+            stopObservingLastSleepState()
+        }
     }
 
     companion object {

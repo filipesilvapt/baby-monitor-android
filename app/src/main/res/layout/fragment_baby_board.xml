@@ -7,8 +7,6 @@
 
     <data>
 
-        <import type="androidx.core.content.ContextCompat" />
-
         <import type="android.view.View" />
 
         <variable
@@ -90,7 +88,7 @@
                     android:layout_marginStart="60dp"
                     android:layout_marginTop="15dp"
                     android:layout_marginEnd="60dp"
-                    android:text="@{viewModel.textBabyTemperature}"
+                    android:text="@{@string/temperature_in_celsius(viewModel.textBabyTemperature)}"
                     android:textAlignment="center"
                     android:textSize="20sp"
                     app:layout_constraintBottom_toBottomOf="parent"
